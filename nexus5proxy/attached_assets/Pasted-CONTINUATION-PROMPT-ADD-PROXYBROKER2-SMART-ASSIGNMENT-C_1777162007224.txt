@@ -1,0 +1,439 @@
+CONTINUATION PROMPT — ADD PROXYBROKER2 + SMART ASSIGNMENT
+🧠 CONTEXT
+
+You are working on an existing SaaS platform:
+
+NexusProxy — proxy marketplace & management system
+
+Already implemented:
+
+Authentication (JWT)
+PostgreSQL database
+Proxy listing UI (Webshare-style)
+Subscription + billing system
+Cart + reservation system (basic)
+⚠️ STRICT RULES
+DO NOT rebuild the system
+DO NOT remove existing features
+ONLY extend functionality
+All new logic must integrate with current database and APIs
+All frontend updates must reflect real backend changes
+🎯 OBJECTIVE
+
+Enhance the system with:
+
+Default proxy ingestion using ProxyBroker2
+Automatic proxy enrichment (geo + classification)
+Intelligent proxy allocation after payment
+Proxy quality filtering (remove bad proxies)
+Continuous health checking + rotation support
+🌐 1. PROXY FETCHER INTEGRATION (PROXYBROKER2)
+REQUIREMENT
+
+Integrate:
+
+👉 bluet/proxybroker2
+
+as the default proxy ingestion service
+
+IMPLEMENTATION
+
+Create a separate microservice or worker:
+
+Responsibilities:
+Fetch proxies from 50+ sources
+Support:
+HTTP / HTTPS
+SOCKS4 / SOCKS5
+Remove duplicates automatically
+Validate:
+Cookies support
+Referer support
+POST support (optional)
+EXECUTION FLOW
+
+Every 5 minutes:
+
+1. Run proxybroker2 fetch
+2. Validate proxies
+3. Filter working proxies
+4. Send results to backend API
+5. Store in database
+🧠 2. PROXY ENRICHMENT PIPELINE
+REQUIRED FIELDS (AUTO-FILL)
+
+For each proxy, enrich with:
+
+country
+state
+city
+street (if available)
+latitude
+longitude
+ISP provider
+proxy_type:
+datacenter
+residential
+ISP
+mobile
+IMPLEMENTATION
+Use GeoIP service (MaxMind or API)
+Use IP intelligence to classify:
+ASN / ISP → detect datacenter vs residential
+Store enriched data in proxies table
+🗂️ 3. AUTO CLASSIFICATION
+
+System must automatically group proxies into:
+
+Residential
+Datacenter
+ISP
+Mobile
+
+Frontend filters must use this data dynamically.
+
+🧪 4. PROXY QUALITY CONTROL
+HEALTH CHECK LOGIC
+
+Use ProxyBroker2 + internal checker to evaluate:
+
+response time
+success rate
+anonymity level
+DNSBL status
+RULES
+
+Mark proxy as:
+
+active → working
+slow → high latency
+dead → remove from pool
+AUTO CLEANUP
+Remove or disable bad proxies automatically
+Maintain only high-quality proxies in inventory
+🛒 5. SMART PROXY ASSIGNMENT (CRITICAL)
+TRIGGER
+
+After:
+
+POST /api/purchase
+LOGIC
+
+System must:
+
+CASE 1: IP-BASED PLAN
+
+Example:
+
+User buys → 50 IPs
+
+System must:
+
+Select 50 available proxies
+Match filters if applicable:
+country
+type
+Assign to user
+CASE 2: BANDWIDTH (GB) PLAN
+
+Example:
+
+User buys → 1000 GB
+
+System must:
+
+Assign access to proxy pool
+Track usage dynamically
+Deduct bandwidth per request
+DELIVERY
+
+Store in:
+
+user_proxies table
+
+Then expose via API:
+
+GET /api/user/proxies
+FRONTEND
+
+User dashboard must show:
+
+Assigned proxies (IP:PORT)
+Username / Password
+Expiry time
+Bandwidth remaining (if GB plan)
+🔁 6. PROXY ROTATION (OPTIONAL BUT IMPORTANT)
+
+System should support:
+
+rotating proxy endpoint
+session-based routing
+
+Example:
+
+http://username:password@gateway.nexusproxy.io:8000
+
+ProxyBroker2 can help distribute requests across working proxies.
+
+🔒 7. INVENTORY + AVAILABILITY RULES
+Only assign proxies with:
+status = active
+not reserved
+Prevent duplicate assignment
+Use database transactions for allocation
+⚙️ 8. BACKGROUND WORKERS
+
+Create workers for:
+
+Every 5 minutes:
+Fetch proxies (ProxyBroker2)
+Update proxy health
+Every minute:
+Clean expired reservations
+Daily:
+Recalculate proxy quality scores
+🔗 9. BACKEND INTEGRATION
+
+All logic must connect to existing APIs:
+
+/api/proxies
+/api/cart
+/api/purchase
+/api/user/proxies
+📊 10. DATA CONSISTENCY RULES
+No duplicate proxies (unique IP + port)
+Always update backend before frontend
+Use transactions for:
+proxy assignment
+reservation
+purchase
+🚀 FINAL EXPECTATION
+
+The system must now:
+
+✔ Automatically fetch 7000+ proxies
+✔ Enrich each proxy with geo + type data
+✔ Filter out bad proxies
+✔ Assign proxies intelligently after purchase
+✔ Deliver proxies to user dashboard
+✔ Maintain real-time, clean inventory
+
+⚠️ FINAL ENFORCEMENT
+
+Do NOT simulate proxy data. All proxies must come from ProxyBroker2 or real sources. All enrichment, classification, assignment, and filtering must be implemented with real backend logic and database updates.
+
+💡 Why This Prompt Works
+
+This forces the AI to:
+
+Build a real ingestion + filtering pipeline
+Implement smart proxy allocation (core SaaS logic)
+Maintain data integrity + quality control
+Avoid fake/demo implementations
+
+If you want next step:
+
+👉 
+I can give you actual code to run ProxyBroker2 + send to your API
+👉 Or 
+design your proxy scoring algorithm (ranking system)
+👉 Or 
+build your gateway server (like Bright Data)
+
+Just tell me.
+
+design your proxy scoring algorithm (ranking system)
+👉 Or 
+build your gateway server (like Bright Data)
+
+
+Good—these are the two pieces that actually turn your project from a dashboard into a real proxy platform. I’ll give you both, but in a practical, buildable way, not theory.
+
+🧠 PART 1 — PROXY SCORING ALGORITHM (RANKING SYSTEM)
+
+You need a numerical score (0–100) per proxy so your system can:
+
+auto-pick best proxies
+drop bad ones
+prioritize premium inventory
+🎯 CORE IDEA
+
+Each proxy gets a dynamic score based on:
+
+Performance + Reliability + Trust + Freshness
+📊 SCORING MODEL (PRODUCTION READY)
+FINAL_SCORE = 
+  (LATENCY_SCORE * 0.25) +
+  (SUCCESS_SCORE * 0.25) +
+  (UPTIME_SCORE * 0.20) +
+  (ANONYMITY_SCORE * 0.10) +
+  (LOCATION_SCORE * 0.05) +
+  (TYPE_SCORE * 0.10) +
+  (FRESHNESS_SCORE * 0.05)
+🔍 METRIC DEFINITIONS
+1. ⚡ LATENCY SCORE (0–100)
+< 200ms = 100
+200–500ms = 80
+500–1000ms = 50
+> 1000ms = 20
+2. ✅ SUCCESS RATE SCORE
+(successful_requests / total_requests) * 100
+3. ⏱️ UPTIME SCORE
+
+Based on last 24h checks:
+
+uptime % * 100
+4. 🕵️ ANONYMITY SCORE
+elite = 100
+anonymous = 70
+transparent = 30
+5. 🌍 LOCATION SCORE (OPTIONAL BOOST)
+
+Give higher score if:
+
+matches popular regions (US, UK, CA, DE)
+premium country = +100
+normal = +70
+unknown = +40
+6. 🧠 TYPE SCORE
+residential = 100
+ISP = 90
+mobile = 95
+datacenter = 70
+7. 🆕 FRESHNESS SCORE
+last_checked < 5 min = 100
+< 30 min = 80
+< 2h = 50
+> 2h = 20
+🧮 FINAL EXAMPLE
+Latency: 80
+Success: 90
+Uptime: 95
+Anonymity: 100
+Location: 100
+Type: 90
+Freshness: 100
+
+Final ≈ 91.5 → PREMIUM PROXY
+🏷️ SCORE TIERS
+90–100 → Premium
+75–89  → High Quality
+50–74  → متوسط (usable)
+<50    → Bad (remove)
+⚙️ DATABASE ADDITION
+
+Add column:
+
+score INT DEFAULT 0
+🔄 UPDATE WORKER
+
+Every 5 minutes:
+
+1. Run health check
+2. Calculate metrics
+3. Update score
+4. Disable if score < 50
+🚀 PART 2 — PROXY GATEWAY SERVER (LIKE BRIGHT DATA)
+
+This is the REAL product layer.
+
+Right now you are selling proxies.
+This makes you serve proxies.
+
+🧱 ARCHITECTURE
+User App
+   ↓
+Gateway Server (AUTH + LOGIC)
+   ↓
+Proxy Pool (DB)
+   ↓
+Internet
+🎯 WHAT GATEWAY DOES
+Authenticates user
+Picks best proxy
+Routes request
+Tracks usage
+Rotates IPs
+🔐 AUTH FORMAT
+http://username:password@gateway.nexusproxy.io:8000
+⚙️ CORE LOGIC FLOW
+1. Incoming request
+2. Authenticate user
+3. Check:
+   - subscription active
+   - bandwidth remaining
+4. Select proxy (highest score)
+5. Forward request
+6. Track usage
+7. Return response
+🧠 PROXY SELECTION LOGIC
+SELECT * FROM proxies
+WHERE status = 'active'
+AND score > 70
+AND type = requested_type
+ORDER BY score DESC
+LIMIT 1;
+🔁 ROTATION MODES
+1. Per Request Rotation
+new proxy every request
+2. Sticky Session
+session_id → same IP for X minutes
+
+Store in Redis:
+
+session_id → proxy_id
+📊 USAGE TRACKING
+
+Track per request:
+
+- bytes sent
+- bytes received
+- total bandwidth
+
+Deduct from:
+
+user.bandwidth_remaining
+🧱 TECH STACK
+Option A (Simple)
+Node.js (http-proxy)
+PostgreSQL
+Redis
+Option B (High Performance)
+Go (best for proxy servers)
+Redis
+PostgreSQL
+🔌 BASIC NODE FLOW
+Incoming Request
+   ↓
+Validate Auth
+   ↓
+Fetch Proxy from DB
+   ↓
+Forward via http-proxy
+   ↓
+Track bandwidth
+   ↓
+Return response
+⚠️ CRITICAL FEATURES
+
+You MUST include:
+
+timeout handling
+retry fallback (if proxy fails)
+blacklist bad proxies
+connection pooling
+🔥 NEXT LEVEL (OPTIONAL)
+geo-targeting:
+?country=US
+API endpoint:
+GET /get-proxy
+dashboard live usage stats
+⚡ REALITY CHECK
+
+Without gateway → you’re a reseller dashboard
+With gateway → you’re a proxy platform
+
+🚀 WHAT I RECOMMEND YOU DO NEXT
+Build scoring system first
+Then gateway server
+Then connect both
