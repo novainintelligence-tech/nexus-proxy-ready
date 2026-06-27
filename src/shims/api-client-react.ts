@@ -4,7 +4,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as api from "@/lib/api.functions";
 
-const empty = <T,>(data: T) => ({
+const emptyQuery = <T,>(data: T) => ({
   data,
   isLoading: false,
   isFetching: false,
