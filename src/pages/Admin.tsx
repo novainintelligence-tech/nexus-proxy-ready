@@ -40,6 +40,7 @@ import {
   getListPlansQueryKey,
   getAdminGetStatsQueryKey
 } from "@workspace/api-client-react";
+import { ProxyCsvUpload } from "@/components/admin/ProxyCsvUpload";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { queryClient } from "../lib/queryClient";
@@ -72,7 +73,12 @@ export function Admin() {
           <TabsContent value="overview"><OverviewTab /></TabsContent>
           <TabsContent value="users"><UsersTab /></TabsContent>
           <TabsContent value="payments"><PaymentsTab /></TabsContent>
-          <TabsContent value="proxies"><ProxiesTab /></TabsContent>
+          <TabsContent value="proxies">
+            <div className="space-y-6">
+              <ProxyCsvUpload />
+              <ProxiesTab />
+            </div>
+          </TabsContent>
           <TabsContent value="pool"><PoolTab /></TabsContent>
           <TabsContent value="subscriptions"><SubscriptionsTab /></TabsContent>
           <TabsContent value="plans"><PlansTab /></TabsContent>
