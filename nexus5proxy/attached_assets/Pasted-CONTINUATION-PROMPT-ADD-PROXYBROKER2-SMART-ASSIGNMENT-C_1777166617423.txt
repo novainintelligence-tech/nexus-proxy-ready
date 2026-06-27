@@ -1,0 +1,252 @@
+CONTINUATION PROMPT — ADD PROXYBROKER2 + SMART ASSIGNMENT
+🧠 CONTEXT
+
+You are working on an existing SaaS platform:
+
+NexusProxy — proxy marketplace & management system
+
+Already implemented:
+
+Authentication (JWT)
+PostgreSQL database
+Proxy listing UI (Webshare-style)
+Subscription + billing system
+Cart + reservation system (basic)
+⚠️ STRICT RULES
+DO NOT rebuild the system
+DO NOT remove existing features
+ONLY extend functionality
+All new logic must integrate with current database and APIs
+All frontend updates must reflect real backend changes
+🎯 OBJECTIVE
+
+Enhance the system with:
+
+Default proxy ingestion using ProxyBroker2
+Automatic proxy enrichment (geo + classification)
+Intelligent proxy allocation after payment
+Proxy quality filtering (remove bad proxies)
+Continuous health checking + rotation support
+🌐 1. PROXY FETCHER INTEGRATION (PROXYBROKER2)
+REQUIREMENT
+
+Integrate:
+
+👉 bluet/proxybroker2
+
+as the default proxy ingestion service
+
+IMPLEMENTATION
+
+Create a separate microservice or worker:
+
+Responsibilities:
+Fetch proxies from 50+ sources
+Support:
+HTTP / HTTPS
+SOCKS4 / SOCKS5
+Remove duplicates automatically
+Validate:
+Cookies support
+Referer support
+POST support (optional)
+EXECUTION FLOW
+
+Every 5 minutes:
+
+1. Run proxybroker2 fetch
+2. Validate proxies
+3. Filter working proxies
+4. Send results to backend API
+5. Store in database
+🧠 2. PROXY ENRICHMENT PIPELINE
+REQUIRED FIELDS (AUTO-FILL)
+
+For each proxy, enrich with:
+
+country
+state
+city
+street (if available)
+latitude
+longitude
+ISP provider
+proxy_type:
+datacenter
+residential
+ISP
+mobile
+IMPLEMENTATION
+Use GeoIP service (MaxMind or API)
+Use IP intelligence to classify:
+ASN / ISP → detect datacenter vs residential
+Store enriched data in proxies table
+🗂️ 3. AUTO CLASSIFICATION
+
+System must automatically group proxies into:
+
+Residential
+Datacenter
+ISP
+Mobile
+
+Frontend filters must use this data dynamically.
+
+🧪 4. PROXY QUALITY CONTROL
+HEALTH CHECK LOGIC
+
+Use ProxyBroker2 + internal checker to evaluate:
+
+response time
+success rate
+anonymity level
+DNSBL status
+RULES
+
+Mark proxy as:
+
+active → working
+slow → high latency
+dead → remove from pool
+AUTO CLEANUP
+Remove or disable bad proxies automatically
+Maintain only high-quality proxies in inventory
+🛒 5. SMART PROXY ASSIGNMENT (CRITICAL)
+TRIGGER
+
+After:
+
+POST /api/purchase
+LOGIC
+
+System must:
+
+CASE 1: IP-BASED PLAN
+
+Example:
+
+User buys → 50 IPs
+
+System must:
+
+Select 50 available proxies
+Match filters if applicable:
+country
+type
+Assign to user
+CASE 2: BANDWIDTH (GB) PLAN
+
+Example:
+
+User buys → 1000 GB
+
+System must:
+
+Assign access to proxy pool
+Track usage dynamically
+Deduct bandwidth per request
+DELIVERY
+
+Store in:
+
+user_proxies table
+
+Then expose via API:
+
+GET /api/user/proxies
+FRONTEND
+
+User dashboard must show:
+
+Assigned proxies (IP:PORT)
+Username / Password
+Expiry time
+Bandwidth remaining (if GB plan)
+🔁 6. PROXY ROTATION (OPTIONAL BUT IMPORTANT)
+
+System should support:
+
+rotating proxy endpoint
+session-based routing
+
+Example:
+
+http://username:password@gateway.nexusproxy.io:8000
+
+ProxyBroker2 can help distribute requests across working proxies.
+
+🔒 7. INVENTORY + AVAILABILITY RULES
+Only assign proxies with:
+status = active
+not reserved
+Prevent duplicate assignment
+Use database transactions for allocation
+⚙️ 8. BACKGROUND WORKERS
+
+Create workers for:
+
+Every 5 minutes:
+Fetch proxies (ProxyBroker2)
+Update proxy health
+Every minute:
+Clean expired reservations
+Daily:
+Recalculate proxy quality scores
+🔗 9. BACKEND INTEGRATION
+
+All logic must connect to existing APIs:
+
+/api/proxies
+/api/cart
+/api/purchase
+/api/user/proxies
+📊 10. DATA CONSISTENCY RULES
+No duplicate proxies (unique IP + port)
+Always update backend before frontend
+Use transactions for:
+proxy assignment
+reservation
+purchase
+🚀 FINAL EXPECTATION
+
+The system must now:
+
+✔ Automatically fetch 7000+ proxies
+✔ Enrich each proxy with geo + type data
+✔ Filter out bad proxies
+✔ Assign proxies intelligently after purchase
+✔ Deliver proxies to user dashboard
+✔ Maintain real-time, clean inventory
+
+⚠️ FINAL ENFORCEMENT
+
+Do NOT simulate proxy data. All proxies must come from ProxyBroker2 or real sources. All enrichment, classification, assignment, and filtering must be implemented with real backend logic and database updates.
+
+💡 Why This Prompt Works
+
+This forces the AI to:
+
+Build a real ingestion + filtering pipeline
+Implement smart proxy allocation (core SaaS logic)
+Maintain data integrity + quality control
+Avoid fake/demo implementations
+
+If you want next step:
+
+👉 
+I can give you actual code to run ProxyBroker2 + send to your API
+👉 Or 
+design your proxy scoring algorithm (ranking system)
+👉 Or 
+build your gateway server (like Bright Data)
+
+Just tell me.
+
+design your proxy scoring algorithm (ranking system)
+👉 Or 
+build your gateway server (like Bright Data)
+
+
+Good—these are the two pieces that actually turn your project from a dashboard into a real proxy platform. I’ll give you both, but in a practical, buildable way, not theory.
+
+🧠 PART 1 — PROXY SCORING ALGORITHM ...

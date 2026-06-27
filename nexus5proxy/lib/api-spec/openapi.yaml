@@ -1,0 +1,1166 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: NexusProxy API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+  - name: auth
+  - name: plans
+  - name: payments
+  - name: subscriptions
+  - name: proxies
+  - name: admin
+  - name: usage
+  - name: cart
+  - name: purchase
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+
+  /auth/sync:
+    post:
+      operationId: syncUser
+      tags: [auth]
+      summary: Sync Clerk user to database
+      responses:
+        "200":
+          description: User synced
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  /plans:
+    get:
+      operationId: listPlans
+      tags: [plans]
+      summary: List available plans
+      responses:
+        "200":
+          description: List of plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Plan"
+
+  /payments:
+    get:
+      operationId: listMyPayments
+      tags: [payments]
+      summary: Get my payments
+      responses:
+        "200":
+          description: Payments list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Payment"
+    post:
+      operationId: createPayment
+      tags: [payments]
+      summary: Create a new payment request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePaymentBody"
+      responses:
+        "201":
+          description: Payment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+
+  /payments/{id}/submit-hash:
+    patch:
+      operationId: submitPaymentHash
+      tags: [payments]
+      summary: Submit transaction hash for a payment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitHashBody"
+      responses:
+        "200":
+          description: Hash submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+
+  /subscriptions:
+    get:
+      operationId: listMySubscriptions
+      tags: [subscriptions]
+      summary: Get my subscriptions
+      responses:
+        "200":
+          description: Subscriptions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Subscription"
+
+  /subscriptions/active:
+    get:
+      operationId: getActiveSubscription
+      tags: [subscriptions]
+      summary: Get my active subscription with proxies
+      responses:
+        "200":
+          description: Active subscription
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActiveSubscription"
+        "404":
+          description: No active subscription
+
+  /proxies:
+    get:
+      operationId: listAvailableProxies
+      tags: [proxies]
+      summary: Browse available proxies (filter & search)
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: country
+          schema: { type: string }
+        - in: query
+          name: type
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Available proxies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AvailableProxy"
+
+  /proxies/countries:
+    get:
+      operationId: listProxyCountries
+      tags: [proxies]
+      summary: List distinct countries with available proxies
+      responses:
+        "200":
+          description: Country list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  /proxies/my:
+    get:
+      operationId: getMyProxies
+      tags: [proxies]
+      summary: Get my assigned proxies
+      responses:
+        "200":
+          description: My proxies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserProxy"
+
+  /cart:
+    get:
+      operationId: getMyCart
+      tags: [cart]
+      summary: Get my active cart reservations
+      responses:
+        "200":
+          description: Cart contents
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+
+  /cart/add:
+    post:
+      operationId: addToCart
+      tags: [cart]
+      summary: Reserve a proxy in the cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddToCartBody"
+      responses:
+        "201":
+          description: Reserved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CartItem"
+        "409":
+          description: Proxy unavailable
+        "410":
+          description: Proxy gone
+
+  /cart/{id}:
+    delete:
+      operationId: removeFromCart
+      tags: [cart]
+      summary: Release a cart reservation
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Removed
+
+  /purchase:
+    post:
+      operationId: purchaseCart
+      tags: [purchase]
+      summary: Convert cart to a pending crypto payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurchaseCartBody"
+      responses:
+        "201":
+          description: Payment + Subscription created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseResult"
+
+  /usage/stats:
+    get:
+      operationId: getUsageStats
+      tags: [usage]
+      summary: Get my usage statistics
+      responses:
+        "200":
+          description: Usage stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsageStats"
+
+  /admin/users:
+    get:
+      operationId: adminListUsers
+      tags: [admin]
+      summary: List all users (admin only)
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminUser"
+
+  /admin/users/{id}/ban:
+    patch:
+      operationId: adminBanUser
+      tags: [admin]
+      summary: Ban or unban a user
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BanUserBody"
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+
+  /admin/payments:
+    get:
+      operationId: adminListPayments
+      tags: [admin]
+      summary: List all payments (admin only)
+      responses:
+        "200":
+          description: Payments list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminPayment"
+
+  /admin/payments/{id}/confirm:
+    patch:
+      operationId: adminConfirmPayment
+      tags: [admin]
+      summary: Confirm a payment and activate subscription
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfirmPaymentBody"
+      responses:
+        "200":
+          description: Payment confirmed and subscription activated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminPayment"
+
+  /admin/proxies:
+    get:
+      operationId: adminListProxies
+      tags: [admin]
+      summary: List all proxies (admin only)
+      responses:
+        "200":
+          description: Proxies list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminProxy"
+    post:
+      operationId: adminAddProxy
+      tags: [admin]
+      summary: Add a proxy (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddProxyBody"
+      responses:
+        "201":
+          description: Proxy added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminProxy"
+
+  /admin/proxies/bulk:
+    post:
+      operationId: adminBulkAddProxies
+      tags: [admin]
+      summary: Bulk add proxies from list (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkAddProxiesBody"
+      responses:
+        "201":
+          description: Proxies added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkAddResult"
+
+  /admin/proxies/{id}:
+    patch:
+      operationId: adminUpdateProxy
+      tags: [admin]
+      summary: Update a proxy (admin only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Updated proxy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Proxy"
+    delete:
+      operationId: adminDeleteProxy
+      tags: [admin]
+      summary: Delete a proxy (admin only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Proxy deleted
+
+  /admin/subscriptions:
+    get:
+      operationId: adminListSubscriptions
+      tags: [admin]
+      summary: List all subscriptions (admin only)
+      responses:
+        "200":
+          description: All subscriptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Subscription"
+
+  /admin/subscriptions/{id}:
+    patch:
+      operationId: adminUpdateSubscription
+      tags: [admin]
+      summary: Update a subscription (admin only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Updated subscription
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscription"
+
+  /admin/settings:
+    get:
+      operationId: adminGetSettings
+      tags: [admin]
+      summary: Get system settings (admin only)
+      responses:
+        "200":
+          description: Current settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemSettings"
+    patch:
+      operationId: adminUpdateSettings
+      tags: [admin]
+      summary: Update system settings (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SystemSettings"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemSettings"
+
+  /admin/stats:
+    get:
+      operationId: adminGetStats
+      tags: [admin]
+      summary: Get system stats (admin only)
+      responses:
+        "200":
+          description: System stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
+  /admin/plans:
+    post:
+      operationId: adminCreatePlan
+      tags: [admin]
+      summary: Create a plan (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePlanBody"
+      responses:
+        "201":
+          description: Plan created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+
+  /admin/proxies/ingest:
+    post:
+      operationId: adminTriggerProxyIngest
+      tags: [admin]
+      summary: Trigger a manual proxy ingestion run
+      responses:
+        "200":
+          description: Job accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  started: { type: boolean }
+                  note: { type: string }
+
+  /admin/proxies/healthcheck:
+    post:
+      operationId: adminTriggerProxyHealth
+      tags: [admin]
+      summary: Trigger a proxy health-check batch
+      responses:
+        "200":
+          description: Job ran
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  checked: { type: integer }
+                  ok: { type: integer }
+
+  /admin/proxies/stats:
+    get:
+      operationId: adminGetProxyPoolStats
+      tags: [admin]
+      summary: Aggregate proxy pool statistics
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProxyPoolStats"
+
+  /admin/plans/{id}:
+    patch:
+      operationId: adminUpdatePlan
+      tags: [admin]
+      summary: Update an existing plan (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePlanBody"
+      responses:
+        "200":
+          description: Plan updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+    delete:
+      operationId: adminDeletePlan
+      tags: [admin]
+      summary: Delete a plan (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Plan deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  id: { type: string }
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        clerkId:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        isBanned:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, clerkId, email, role, isBanned, createdAt]
+
+    Plan:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        planType:
+          type: string
+        priceUsd:
+          type: integer
+        bandwidthGb:
+          type: integer
+        proxyCount:
+          type: integer
+        durationDays:
+          type: integer
+        proxyTypes:
+          type: array
+          items:
+            type: string
+        features:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean
+      required: [id, name, planType, priceUsd, bandwidthGb, proxyCount, durationDays, proxyTypes, features, isActive]
+
+    Payment:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        planId:
+          type: string
+        amountUsd:
+          type: integer
+        currency:
+          type: string
+        cryptoAmount:
+          type: ["string", "null"]
+        walletAddress:
+          type: ["string", "null"]
+        txHash:
+          type: ["string", "null"]
+        status:
+          type: string
+        confirmedAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required: [id, userId, planId, amountUsd, currency, status, createdAt]
+
+    CreatePaymentBody:
+      type: object
+      properties:
+        planId:
+          type: string
+        currency:
+          type: string
+      required: [planId, currency]
+
+    SubmitHashBody:
+      type: object
+      properties:
+        txHash:
+          type: string
+      required: [txHash]
+
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        planId:
+          type: string
+        planName:
+          type: ["string", "null"]
+        status:
+          type: string
+        bandwidthGbTotal:
+          type: integer
+        bandwidthUsedMb:
+          type: integer
+        startsAt:
+          type: ["string", "null"]
+        expiresAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required: [id, userId, planId, status, bandwidthGbTotal, bandwidthUsedMb, createdAt]
+
+    ActiveSubscription:
+      type: object
+      properties:
+        subscription:
+          $ref: "#/components/schemas/Subscription"
+        plan:
+          $ref: "#/components/schemas/Plan"
+        proxies:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserProxy"
+        remainingHours:
+          type: ["number", "null"]
+        bandwidthRemainingMb:
+          type: integer
+      required: [subscription, plan, proxies, bandwidthRemainingMb]
+
+    UserProxy:
+      type: object
+      properties:
+        id:
+          type: string
+        proxyId:
+          type: string
+        ip:
+          type: string
+        port:
+          type: integer
+        username:
+          type: string
+        password:
+          type: string
+        proxyType:
+          type: string
+        country:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        status:
+          type: ["string", "null"]
+        lastCheckedAt:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+        assignedAt:
+          type: string
+      required: [id, proxyId, ip, port, username, password, proxyType, isActive, assignedAt]
+
+    AvailableProxy:
+      type: object
+      properties:
+        id: { type: string }
+        ip: { type: string }
+        port: { type: integer }
+        proxyType: { type: string }
+        country: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        isp: { type: ["string", "null"] }
+        latencyMs: { type: ["integer", "null"] }
+        status: { type: string }
+        lastCheckedAt: { type: ["string", "null"] }
+        priceCents: { type: integer }
+      required: [id, ip, port, proxyType, status, priceCents]
+
+    Cart:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartItem"
+        totalCents:
+          type: integer
+        reservationMinutes:
+          type: integer
+      required: [items, totalCents, reservationMinutes]
+
+    CartItem:
+      type: object
+      properties:
+        id: { type: string }
+        proxyId: { type: string }
+        expiresAt: { type: string }
+        createdAt: { type: ["string", "null"] }
+        ip: { type: ["string", "null"] }
+        port: { type: ["integer", "null"] }
+        proxyType: { type: ["string", "null"] }
+        country: { type: ["string", "null"] }
+        city: { type: ["string", "null"] }
+        priceCents: { type: ["integer", "null"] }
+      required: [id, proxyId, expiresAt]
+
+    AddToCartBody:
+      type: object
+      properties:
+        proxyId: { type: string }
+      required: [proxyId]
+
+    PurchaseCartBody:
+      type: object
+      properties:
+        currency: { type: string }
+      required: [currency]
+
+    PurchaseResult:
+      type: object
+      properties:
+        payment: { $ref: "#/components/schemas/Payment" }
+        subscription: { $ref: "#/components/schemas/Subscription" }
+      required: [payment, subscription]
+
+    UsageStats:
+      type: object
+      properties:
+        totalBandwidthUsedMb:
+          type: integer
+        activeProxies:
+          type: integer
+        totalConnections:
+          type: integer
+        lastActivity:
+          type: ["string", "null"]
+      required: [totalBandwidthUsedMb, activeProxies, totalConnections]
+
+    AdminUser:
+      type: object
+      properties:
+        id:
+          type: string
+        clerkId:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        isBanned:
+          type: boolean
+        createdAt:
+          type: string
+        activeSubscription:
+          type: ["string", "null"]
+      required: [id, clerkId, email, role, isBanned, createdAt]
+
+    BanUserBody:
+      type: object
+      properties:
+        isBanned:
+          type: boolean
+      required: [isBanned]
+
+    AdminPayment:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        userEmail:
+          type: ["string", "null"]
+        planId:
+          type: string
+        planName:
+          type: ["string", "null"]
+        amountUsd:
+          type: integer
+        currency:
+          type: string
+        txHash:
+          type: ["string", "null"]
+        status:
+          type: string
+        adminNote:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required: [id, userId, planId, amountUsd, currency, status, createdAt]
+
+    ConfirmPaymentBody:
+      type: object
+      properties:
+        adminNote:
+          type: string
+      required: []
+
+    AdminProxy:
+      type: object
+      properties:
+        id:
+          type: string
+        ip:
+          type: string
+        port:
+          type: integer
+        username:
+          type: string
+        proxyType:
+          type: string
+        country:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+        isAssigned:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, ip, port, username, proxyType, isActive, isAssigned, createdAt]
+
+    AddProxyBody:
+      type: object
+      properties:
+        ip:
+          type: string
+        port:
+          type: integer
+        username:
+          type: string
+        password:
+          type: string
+        proxyType:
+          type: string
+        country:
+          type: string
+      required: [ip, port, username, password, proxyType]
+
+    BulkAddProxiesBody:
+      type: object
+      properties:
+        proxyList:
+          type: string
+          description: "Newline-separated proxies in IP:PORT:USER:PASS format"
+        proxyType:
+          type: string
+      required: [proxyList, proxyType]
+
+    BulkAddResult:
+      type: object
+      properties:
+        added:
+          type: integer
+        skipped:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: string
+      required: [added, skipped, errors]
+
+    AdminStats:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        activeSubscriptions:
+          type: integer
+        pendingPayments:
+          type: integer
+        totalProxies:
+          type: integer
+        assignedProxies:
+          type: integer
+        totalRevenueCents:
+          type: integer
+      required: [totalUsers, activeSubscriptions, pendingPayments, totalProxies, assignedProxies, totalRevenueCents]
+
+    SystemSettings:
+      type: object
+      properties:
+        autoConfirmPayments:
+          type: boolean
+      required: [autoConfirmPayments]
+
+    Proxy:
+      type: object
+      additionalProperties: true
+      properties:
+        id:
+          type: string
+        ip:
+          type: string
+        port:
+          type: integer
+        username:
+          type: string
+        password:
+          type: string
+        proxyType:
+          type: string
+        country:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        isp:
+          type: ["string", "null"]
+        priceCents:
+          type: integer
+        status:
+          type: string
+        isActive:
+          type: boolean
+        isAssigned:
+          type: boolean
+      required: [id, ip, port, username, password, proxyType]
+
+    CreatePlanBody:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        planType:
+          type: string
+        priceUsd:
+          type: integer
+        bandwidthGb:
+          type: integer
+        proxyCount:
+          type: integer
+        durationDays:
+          type: integer
+        proxyTypes:
+          type: array
+          items:
+            type: string
+        features:
+          type: array
+          items:
+            type: string
+      required: [id, name, planType, priceUsd, bandwidthGb, proxyCount, durationDays]
+
+    ProxyPoolStats:
+      type: object
+      properties:
+        total: { type: integer }
+        active: { type: integer }
+        assigned: { type: integer }
+        working: { type: integer }
+        dead: { type: integer }
+        untested: { type: integer }
+        premium: { type: integer }
+        high: { type: integer }
+        usable: { type: integer }
+        bad: { type: integer }
+        avg_score: { type: integer }
+
+    UpdatePlanBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        planType:
+          type: string
+        priceUsd:
+          type: integer
+        bandwidthGb:
+          type: integer
+        proxyCount:
+          type: integer
+        durationDays:
+          type: integer
+        proxyTypes:
+          type: array
+          items:
+            type: string
+        features:
+          type: array
+          items:
+            type: string
+        isActive:
+          type: boolean

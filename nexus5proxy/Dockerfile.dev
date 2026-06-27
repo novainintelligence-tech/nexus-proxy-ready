@@ -1,0 +1,40 @@
+# =============================================================================
+# Development Dockerfile for Nexus5Proxy
+# =============================================================================
+# This Dockerfile is optimized for development with hot-reload support
+# Use: docker build -f Dockerfile.dev -t nexus5proxy:dev .
+
+FROM node:24-alpine
+
+# Install pnpm
+RUN npm install -g pnpm@9
+
+# Set working directory
+WORKDIR /app
+
+# Copy workspace configuration files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json tsconfig.json ./
+
+# Copy workspace packages
+COPY lib ./lib
+COPY artifacts/api-server ./artifacts/api-server
+COPY scripts ./scripts
+
+# Install all dependencies (including dev dependencies)
+RUN pnpm install --frozen-lockfile
+
+# Build the project
+RUN pnpm run build
+
+# Expose the port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://localhost:8080/health || exit 1
+
+# Enable source maps for better debugging
+ENV NODE_OPTIONS="--enable-source-maps"
+
+# Start development server with hot-reload
+CMD ["pnpm", "--filter", "@workspace/api-server", "run", "dev"]

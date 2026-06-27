@@ -1,0 +1,231 @@
+NEXUSPROXY – FULL SYSTEM PROMPT (FINAL)
+🧠 PROJECT CONTEXT
+
+You are working on an existing SaaS platform:
+
+NexusProxy — a proxy marketplace & management system
+
+The system already includes:
+
+Authentication (JWT)
+PostgreSQL database
+Basic dashboard UI
+Subscription + billing logic
+⚠️ CORE RULES (DO NOT BREAK SYSTEM)
+DO NOT rebuild or replace existing architecture
+DO NOT create mockups or static UI
+DO NOT simulate backend responses
+ONLY extend and connect real functionality
+All frontend must call real backend APIs
+🎨 UI / UX (WEBshare-STYLE DASHBOARD)
+
+Design must follow structure similar to Webshare Dashboard
+
+🧱 LAYOUT
+Sidebar (fixed)
+
+Routes:
+
+/dashboard
+/proxies
+/proxy-list
+/proxy-settings
+/stats
+/proxy-server
+/static-residential
+/rotating-residential
+/plans
+/subscription
+/referral
+/api
+/settings
+📊 DASHBOARD PAGE (/dashboard)
+
+Components:
+
+1. Active Plan Card
+Plan name
+Proxy count
+Bandwidth
+Status (ACTIVE)
+2. Notification Banner
+CTA: “View My Proxy List”
+3. Pricing Cards (connected to backend)
+Proxy Server
+Static Residential
+Rotating Residential
+
+Each must fetch real plan data from API.
+
+4. Setup Guides Grid
+
+Static UI (Chrome, Firefox, etc.)
+
+📡 PROXY LIST PAGE (/proxies/proxy-list)
+Table (REAL DATA ONLY)
+
+Columns:
+
+Proxy Address (IP:PORT)
+Username
+Password
+Type (Residential / ISP / Datacenter)
+Country (flag)
+Status (Working / Dead)
+Last Checked
+Action:
+Add to Cart 🛒
+Features:
+Search (IP / country)
+Filter:
+Proxy Type
+Country
+Download proxies
+Replace proxy
+⚠️ MUST:
+
+All data fetched from backend API:
+
+GET /api/proxies
+🛒 CART SYSTEM (CONNECTED)
+Add to Cart
+POST /api/cart/add
+
+Backend must:
+
+Reserve proxy
+Set expiration (10–15 min)
+Cart Rules
+Proxy status becomes: reserved
+Only one user can hold a proxy
+If purchased by another user:
+
+Frontend must show:
+
+“This proxy is no longer available”
+
+Cleanup Worker
+Runs automatically
+Releases expired reservations
+🌐 PROXY INGESTION SYSTEM
+Admin Capabilities
+1. API Integration
+
+Support providers like:
+
+AWS
+DigitalOcean
+Bright Data
+Oxylabs
+2. Manual Upload
+CSV / TXT
+Format:
+IP:PORT:USERNAME:PASSWORD
+🔄 AUTO-SYNC
+Runs every 5 minutes
+Tasks:
+Add new proxies
+Update existing
+Remove dead proxies
+🧠 PROXY ENRICHMENT
+
+Automatically add:
+
+proxy_type
+country
+state
+city
+ISP
+latency
+status
+📊 PRICING SYSTEM (USE THIS DATA)
+SOCKS5 Residential (by IP)
+Monthly:
+900 IPs — $99
+1,300 IPs — $130
+1,800 IPs — $154.80
+5,200 IPs — $364
+11,000 IPs — $506
+Daily:
+10 IPs — $2/day
+25 IPs — $4.50/day
+50 IPs — $8/day
+100 IPs — $15/day
+SOCKS5 Residential (by GB)
+Standard:
+60 GB — $120
+130 GB — $195
+500 GB — $480
+1,000 GB — $750
+3,000 GB — $1,800
+Daily:
+5 GB — $3/day
+10 GB — $5/day
+20 GB — $9/day
+50 GB — $20/day
+Rotating ISP (by GB)
+130 GB — $195
+500 GB — $480
+1,000 GB — $750
+3,000 GB — $1,800
+Unlimited Residential
+1 Week — $560
+15 Days — $1,050
+1 Month — $1,650
+💳 BILLING SYSTEM
+Stripe integration
+Payment triggers:
+→ proxy assignment
+→ subscription activation
+🔗 BACKEND API (REQUIRED)
+Auth
+POST /api/auth/login
+POST /api/auth/register
+Proxies
+GET /api/proxies
+GET /api/proxies/:id
+Cart
+POST /api/cart/add
+GET /api/cart
+DELETE /api/cart/:id
+Purchase
+POST /api/purchase
+Plans
+GET /api/plans
+🔁 REAL-TIME SYNC
+
+Use:
+
+WebSockets OR polling
+
+Update UI when:
+
+Proxy becomes unavailable
+Cart expires
+Proxy status changes
+⚙️ AUTOMATION
+
+Workers must handle:
+
+Proxy sync (5 min)
+Cart cleanup
+Subscription expiry
+Proxy health checks
+🔒 DATA RULES
+No duplicate proxies (unique IP + port)
+Use transactions for:
+reserving
+purchasing
+Prevent race conditions
+🚀 FINAL REQUIREMENT
+
+This must be a real working SaaS system:
+
+UI fully connected to backend
+Real database updates
+Real proxy ingestion
+Real cart + reservation logic
+No fake data or placeholders
+⚠️ FINAL ENFORCEMENT
+
+Do NOT generate static UI or mock data. Every UI element must be powered by real backend logic, database queries, and API responses. Maintain Webshare-style layout and routing while ensuring full frontend-backend integration.
