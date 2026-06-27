@@ -117,10 +117,11 @@ const socksListInput = z
 export const listSocks = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v) => socksListInput.parse(v))
-  .handler(async ({ context, data }) => {
+  .handler(async ({ data }) => {
     const from = (data.page - 1) * data.pageSize;
     const to = from + data.pageSize - 1;
-    let q = context.supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let q = supabaseAdmin
       .from("proxies")
       .select(
         "id, ip, port, proxy_type, auth_type, country, region, city, host, zipcode, speed_mbps, blacklist, last_seen_at, last_view_at",
