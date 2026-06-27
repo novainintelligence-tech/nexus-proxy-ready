@@ -73,8 +73,9 @@ const browseInput = z
 export const listAvailableProxies = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v) => browseInput.parse(v))
-  .handler(async ({ context, data }) => {
-    let q = context.supabase
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let q = supabaseAdmin
       .from("proxies")
       .select("id, ip, port, proxy_type, country, region, city, host, speed_mbps, blacklist")
       .eq("status", "available")
