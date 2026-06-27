@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useGetMe } from "@workspace/api-client-react";
-import { useClerk } from "@clerk/react";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,10 @@ import { Settings as SettingsIcon, LogOut } from "lucide-react";
 
 export function Settings() {
   const { data: user } = useGetMe();
-  const { signOut } = useClerk();
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/auth";
+  };
 
   return (
     <div className="space-y-6 max-w-3xl">

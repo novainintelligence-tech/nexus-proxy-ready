@@ -1,11 +1,10 @@
-// Stub implementation of @workspace/api-client-react.
-// The original backend is not deployed; these hooks return empty data so the
-// ported UI renders without crashing. Wire up to a real API later.
-import { useCallback } from "react";
+// Real implementation of @workspace/api-client-react — backed by TanStack
+// Query + createServerFn. Hooks that are not yet wired to a backend endpoint
+// return empty data/no-op mutations so the UI continues to render.
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as api from "@/lib/api.functions";
 
-type AnyData = any;
-
-const emptyQuery = <T = AnyData>(data: T) => ({
+const emptyQuery = <T,>(data: T) => ({
   data,
   isLoading: false,
   isFetching: false,
@@ -16,13 +15,9 @@ const emptyQuery = <T = AnyData>(data: T) => ({
 });
 
 function noopMutation() {
-  const mutate = (_vars?: any, opts?: { onSuccess?: (d: any) => void; onError?: (e: any) => void }) => {
-    opts?.onSuccess?.({});
-  };
-  const mutateAsync = async (_vars?: any) => ({} as any);
   return {
-    mutate: useCallback(mutate, []),
-    mutateAsync: useCallback(mutateAsync, []),
+    mutate: (_v?: any, opts?: { onSuccess?: (d: any) => void }) => opts?.onSuccess?.({}),
+    mutateAsync: async (_v?: any) => ({} as any),
     isPending: false,
     isLoading: false,
     isError: false,
@@ -46,38 +41,59 @@ export const getListPlansQueryKey = () => ["plans"];
 // ---------- user / auth ----------
 export const useSyncUser = () => noopMutation();
 export const useGetMe = () =>
-  emptyQuery({
-    id: "demo-user",
-    email: "demo@nexusproxy.io",
-    role: "admin",
-    name: "Demo User",
-    balance: 0,
-    referralCode: "DEMO123",
-  });
+  useQuery({ queryKey: ["me"], queryFn: () => api.getMe() });
 
 // ---------- plans / payments ----------
-export const useListPlans = () => emptyQuery<any[]>([]);
+export const useListPlans = () =>
+  useQuery({ queryKey: getListPlansQueryKey(), queryFn: () => api.listPlans() });
 export const useCreatePayment = () => noopMutation();
 export const useSubmitPaymentHash = () => noopMutation();
-export const useListMyPayments = () => emptyQuery<any[]>([]);
+export const useListMyPayments = () =>
+  useQuery({ queryKey: getListMyPaymentsQueryKey(), queryFn: () => api.listMyPayments() });
 
 // ---------- subscriptions ----------
 export const useGetActiveSubscription = () => emptyQuery<any>(null);
-export const useListMySubscriptions = () => emptyQuery<any[]>([]);
+export const useListMySubscriptions = () =>
+  useQuery({ queryKey: ["subs", "mine"], queryFn: () => api.listMySubscriptions() });
 
 // ---------- proxies ----------
-export const useGetMyProxies = () => emptyQuery<any[]>([]);
-export const useListAvailableProxies = () => emptyQuery<any[]>([]);
+export const useGetMyProxies = () =>
+  useQuery({ queryKey: ["proxies", "mine"], queryFn: () => api.listMyProxies() });
+export const useListAvailableProxies = (params?: any) =>
+  useQuery({
+    queryKey: ["proxies", "available", params],
+    queryFn: () => api.listAvailableProxies({ data: params ?? { limit: 50 } }),
+  });
 export const useListProxyCountries = () => emptyQuery<any[]>([]);
 
 // ---------- usage ----------
 export const useGetUsageStats = () =>
-  emptyQuery({ totalBandwidth: 0, usedBandwidth: 0, requests: 0, perDay: [] });
+  useQuery({ queryKey: ["usage"], queryFn: () => api.getUsageStats() });
 
 // ---------- cart ----------
-export const useGetMyCart = () => emptyQuery({ items: [], total: 0 });
-export const useAddToCart = () => noopMutation();
-export const useRemoveFromCart = () => noopMutation();
+export const useGetMyCart = (_opts?: any) =>
+  useQuery({ queryKey: ["cart"], queryFn: () => api.getMyCart(), refetchInterval: 5000 });
+
+export const useAddToCart = () => {
+  const qc = useQueryClient();
+  const m = useMutation({
+    mutationFn: (vars: { data: { proxyId: string; priceCents: number } }) =>
+      api.addToCart({ data: vars.data }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["cart"] }),
+  });
+  return { ...m, isLoading: m.isPending };
+};
+
+export const useRemoveFromCart = () => {
+  const qc = useQueryClient();
+  const m = useMutation({
+    mutationFn: (vars: { id: string }) => api.removeFromCart({ data: { id: vars.id } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["cart"] }),
+  });
+  return { ...m, isLoading: m.isPending };
+};
+
+export const usePurchaseCart = () => noopMutation(); // wired in Phase 3 (NOWPayments)
 
 // ---------- admin ----------
 export const useAdminGetStats = () =>
