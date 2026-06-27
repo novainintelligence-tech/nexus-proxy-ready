@@ -21,7 +21,10 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "wouter": ["./src/shims/wouter.tsx"],
+      "@clerk/react": ["./src/shims/clerk.tsx"],
+      "@workspace/api-client-react": ["./src/shims/api-client-react.ts"]
     }
   }
 }
