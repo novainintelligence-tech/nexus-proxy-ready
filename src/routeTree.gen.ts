@@ -27,6 +27,7 @@ import { Route as AppCartRouteImport } from './routes/_app.cart'
 import { Route as AppApiRouteImport } from './routes/_app.api'
 import { Route as AppAdminRouteImport } from './routes/_app.admin'
 import { Route as AppProxiesProxySettingsRouteImport } from './routes/_app.proxies.proxy-settings'
+import { Route as ApiPublicAuthTelegramRouteImport } from './routes/api/public/auth/telegram'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -117,6 +118,11 @@ const AppProxiesProxySettingsRoute = AppProxiesProxySettingsRouteImport.update({
   path: '/proxy-settings',
   getParentRoute: () => AppProxiesRoute,
 } as any)
+const ApiPublicAuthTelegramRoute = ApiPublicAuthTelegramRouteImport.update({
+  id: '/api/public/auth/telegram',
+  path: '/api/public/auth/telegram',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/subscription': typeof AppSubscriptionRoute
   '/usage': typeof AppUsageRoute
   '/proxies/proxy-settings': typeof AppProxiesProxySettingsRoute
+  '/api/public/auth/telegram': typeof ApiPublicAuthTelegramRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -155,6 +162,7 @@ export interface FileRoutesByTo {
   '/subscription': typeof AppSubscriptionRoute
   '/usage': typeof AppUsageRoute
   '/proxies/proxy-settings': typeof AppProxiesProxySettingsRoute
+  '/api/public/auth/telegram': typeof ApiPublicAuthTelegramRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -176,6 +184,7 @@ export interface FileRoutesById {
   '/_app/subscription': typeof AppSubscriptionRoute
   '/_app/usage': typeof AppUsageRoute
   '/_app/proxies/proxy-settings': typeof AppProxiesProxySettingsRoute
+  '/api/public/auth/telegram': typeof ApiPublicAuthTelegramRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -197,6 +206,7 @@ export interface FileRouteTypes {
     | '/subscription'
     | '/usage'
     | '/proxies/proxy-settings'
+    | '/api/public/auth/telegram'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/subscription'
     | '/usage'
     | '/proxies/proxy-settings'
+    | '/api/public/auth/telegram'
   id:
     | '__root__'
     | '/'
@@ -236,12 +247,14 @@ export interface FileRouteTypes {
     | '/_app/subscription'
     | '/_app/usage'
     | '/_app/proxies/proxy-settings'
+    | '/api/public/auth/telegram'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicAuthTelegramRoute: typeof ApiPublicAuthTelegramRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -372,6 +385,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProxiesProxySettingsRouteImport
       parentRoute: typeof AppProxiesRoute
     }
+    '/api/public/auth/telegram': {
+      id: '/api/public/auth/telegram'
+      path: '/api/public/auth/telegram'
+      fullPath: '/api/public/auth/telegram'
+      preLoaderRoute: typeof ApiPublicAuthTelegramRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -427,17 +447,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicAuthTelegramRoute: ApiPublicAuthTelegramRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

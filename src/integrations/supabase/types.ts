@@ -169,6 +169,7 @@ export type Database = {
           id: string
           referral_code: string
           referred_by: string | null
+          telegram_id: number | null
           updated_at: string
         }
         Insert: {
@@ -179,6 +180,7 @@ export type Database = {
           id: string
           referral_code?: string
           referred_by?: string | null
+          telegram_id?: number | null
           updated_at?: string
         }
         Update: {
@@ -189,6 +191,7 @@ export type Database = {
           id?: string
           referral_code?: string
           referred_by?: string | null
+          telegram_id?: number | null
           updated_at?: string
         }
         Relationships: [

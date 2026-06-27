@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import { TelegramLogin } from "@/components/auth/TelegramLogin";
 
 const searchSchema = z.object({ redirect: z.string().optional() });
 
@@ -133,6 +134,9 @@ function AuthPage() {
             <Button type="button" variant="outline" className="w-full" onClick={handleGoogle} disabled={busy}>
               Continue with Google
             </Button>
+            <div className="mt-4 flex justify-center">
+              <TelegramLogin />
+            </div>
           </CardContent>
         </Card>
       </div>
