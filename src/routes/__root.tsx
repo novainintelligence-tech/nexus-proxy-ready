@@ -77,14 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Nexus5Proxy" },
+      { name: "description", content: "Nexus Proxy Ready configures and deploys a proxy server for production environments." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Nexus5Proxy" },
+      { property: "og:description", content: "Nexus Proxy Ready configures and deploys a proxy server for production environments." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Nexus5Proxy" },
+      { name: "twitter:description", content: "Nexus Proxy Ready configures and deploys a proxy server for production environments." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/peORSSGOUbVYHZ2SdkRQJyaSbu53/social-images/social-1782541869730-ChatGPT_Image_Jun_27,_2026,_07_29_46_AM.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/peORSSGOUbVYHZ2SdkRQJyaSbu53/social-images/social-1782541869730-ChatGPT_Image_Jun_27,_2026,_07_29_46_AM.webp" },
     ],
     links: [
       {
