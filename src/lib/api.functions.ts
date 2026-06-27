@@ -97,6 +97,132 @@ export const listAvailableProxies = createServerFn({ method: "GET" })
     }));
   });
 
+// ----- socks list (filtered catalog) -----
+const socksListInput = z
+  .object({
+    authType: z.string().optional(),
+    proxyType: z.string().optional(),
+    country: z.string().optional(),
+    region: z.string().optional(),
+    city: z.string().optional(),
+    blacklist: z.enum(["yes", "no"]).optional(),
+    zipcode: z.string().optional(),
+    host: z.string().optional(),
+    page: z.number().int().min(1).default(1),
+    pageSize: z.number().int().min(1).max(200).default(20),
+  })
+  .default({ page: 1, pageSize: 20 });
+
+export const listSocks = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v) => socksListInput.parse(v))
+  .handler(async ({ context, data }) => {
+    const from = (data.page - 1) * data.pageSize;
+    const to = from + data.pageSize - 1;
+    let q = context.supabase
+      .from("proxies")
+      .select(
+        "id, ip, port, proxy_type, auth_type, country, region, city, host, zipcode, speed_mbps, blacklist, last_seen_at, last_view_at",
+        { count: "exact" },
+      )
+      .order("last_seen_at", { ascending: false, nullsFirst: false })
+      .range(from, to);
+    if (data.authType) q = q.eq("auth_type", data.authType);
+    if (data.proxyType) q = q.eq("proxy_type", data.proxyType);
+    if (data.country) q = q.eq("country", data.country);
+    if (data.region) q = q.eq("region", data.region);
+    if (data.city) q = q.eq("city", data.city);
+    if (data.blacklist) q = q.eq("blacklist", data.blacklist === "yes");
+    if (data.zipcode) {
+      const zips = data.zipcode.split(",").map((s) => s.trim()).filter(Boolean);
+      if (zips.length) q = q.in("zipcode", zips);
+    }
+    if (data.host) q = q.ilike("host", `%${data.host}%`);
+    const { data: rows, error, count } = await q;
+    if (error) throw new Error(error.message);
+    return {
+      total: count ?? 0,
+      rows: (rows ?? []).map((p: any) => ({
+        id: p.id,
+        ip: String(p.ip),
+        port: p.port,
+        proxyType: p.proxy_type,
+        authType: p.auth_type,
+        country: p.country,
+        region: p.region,
+        city: p.city,
+        host: p.host,
+        zipcode: p.zipcode,
+        speedMbps: p.speed_mbps ? Number(p.speed_mbps) : null,
+        blacklist: p.blacklist,
+        lastSeenAt: p.last_seen_at,
+        lastViewAt: p.last_view_at,
+      })),
+    };
+  });
+
+// ----- admin: bulk upload proxies (CSV) -----
+const proxyRow = z.object({
+  ip: z.string().min(1),
+  port: z.coerce.number().int().min(1).max(65535),
+  username: z.string().default(""),
+  password: z.string().default(""),
+  proxy_type: z.string().default("residential"),
+  protocol: z.string().default("socks5"),
+  auth_type: z.string().default("userpass"),
+  country: z.string().optional().nullable(),
+  region: z.string().optional().nullable(),
+  city: z.string().optional().nullable(),
+  zipcode: z.string().optional().nullable(),
+  host: z.string().optional().nullable(),
+  speed_mbps: z.coerce.number().optional().nullable(),
+  blacklist: z
+    .union([z.boolean(), z.string()])
+    .transform((v) => (typeof v === "boolean" ? v : /^(true|yes|1)$/i.test(v)))
+    .default(false),
+  source: z.string().optional().nullable(),
+  external_id: z.string().optional().nullable(),
+});
+
+export const bulkUploadProxies = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v) => z.object({ rows: z.array(z.record(z.any())).min(1).max(5000) }).parse(v))
+  .handler(async ({ context, data }) => {
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (!isAdmin) throw new Error("Forbidden");
+
+    const errors: { row: number; error: string }[] = [];
+    const parsed: any[] = [];
+    data.rows.forEach((raw, i) => {
+      const r = proxyRow.safeParse(raw);
+      if (!r.success) {
+        errors.push({ row: i + 1, error: r.error.issues[0]?.message ?? "invalid" });
+      } else {
+        parsed.push({ ...r.data, status: "available", last_seen_at: new Date().toISOString() });
+      }
+    });
+    if (!parsed.length) return { inserted: 0, errors };
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let inserted = 0;
+    const chunkSize = 500;
+    for (let i = 0; i < parsed.length; i += chunkSize) {
+      const chunk = parsed.slice(i, i + chunkSize);
+      const { error, count } = await supabaseAdmin
+        .from("proxies")
+        .upsert(chunk, { onConflict: "ip,port,username", count: "exact", ignoreDuplicates: false });
+      if (error) {
+        errors.push({ row: i, error: error.message });
+      } else {
+        inserted += count ?? chunk.length;
+      }
+    }
+    return { inserted, errors };
+  });
+
 // ----- cart -----
 export const getMyCart = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
