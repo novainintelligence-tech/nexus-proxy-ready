@@ -204,6 +204,7 @@ export type Database = {
       proxies: {
         Row: {
           assigned_to: string | null
+          auth_type: string
           blacklist: boolean
           city: string | null
           country: string | null
@@ -213,6 +214,7 @@ export type Database = {
           id: string
           ip: unknown
           last_seen_at: string | null
+          last_view_at: string | null
           password: string
           port: number
           protocol: string
@@ -226,6 +228,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          auth_type?: string
           blacklist?: boolean
           city?: string | null
           country?: string | null
@@ -235,6 +238,7 @@ export type Database = {
           id?: string
           ip: unknown
           last_seen_at?: string | null
+          last_view_at?: string | null
           password: string
           port: number
           protocol?: string
@@ -248,6 +252,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          auth_type?: string
           blacklist?: boolean
           city?: string | null
           country?: string | null
@@ -257,6 +262,7 @@ export type Database = {
           id?: string
           ip?: unknown
           last_seen_at?: string | null
+          last_view_at?: string | null
           password?: string
           port?: number
           protocol?: string
