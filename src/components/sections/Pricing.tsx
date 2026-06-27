@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from "@tanstack/react-router";
 
 type Plan = {
   id: string;
@@ -117,14 +118,17 @@ export function Pricing() {
                   </CardContent>
                   <CardFooter>
                     <Button
+                      asChild
                       className={`w-full h-9 text-xs ${
                         popular
                           ? "bg-primary text-primary-foreground hover:bg-primary/90"
                           : "bg-card border border-border hover:bg-primary/10 text-foreground"
                       }`}
                     >
-                      Get Started
-                      <ArrowRight className="w-3 h-3 ml-1.5" />
+                      <Link to="/auth">
+                        Get Started
+                        <ArrowRight className="w-3 h-3 ml-1.5" />
+                      </Link>
                     </Button>
                   </CardFooter>
                 </Card>
