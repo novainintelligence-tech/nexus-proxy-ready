@@ -26,6 +26,7 @@ const groups: Group[] = [
     label: "Proxies",
     items: [
       { href: "/proxies/proxy-list", label: "Proxy List", icon: List },
+      { href: "/socks-list", label: "Socks List", icon: List },
       { href: "/proxies/proxy-settings", label: "Proxy Settings", icon: Sliders },
       { href: "/stats", label: "Stats", icon: BarChart3 },
     ],

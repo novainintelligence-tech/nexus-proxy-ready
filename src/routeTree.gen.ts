@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppUsageRouteImport } from './routes/_app.usage'
 import { Route as AppSubscriptionRouteImport } from './routes/_app.subscription'
 import { Route as AppStatsRouteImport } from './routes/_app.stats'
+import { Route as AppSocksListRouteImport } from './routes/_app.socks-list'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppReferralRouteImport } from './routes/_app.referral'
 import { Route as AppProxyServerRouteImport } from './routes/_app.proxy-server'
@@ -54,6 +55,11 @@ const AppSubscriptionRoute = AppSubscriptionRouteImport.update({
 const AppStatsRoute = AppStatsRouteImport.update({
   id: '/stats',
   path: '/stats',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSocksListRoute = AppSocksListRouteImport.update({
+  id: '/socks-list',
+  path: '/socks-list',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/proxy-server': typeof AppProxyServerRoute
   '/referral': typeof AppReferralRoute
   '/settings': typeof AppSettingsRoute
+  '/socks-list': typeof AppSocksListRoute
   '/stats': typeof AppStatsRoute
   '/subscription': typeof AppSubscriptionRoute
   '/usage': typeof AppUsageRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByTo {
   '/proxy-server': typeof AppProxyServerRoute
   '/referral': typeof AppReferralRoute
   '/settings': typeof AppSettingsRoute
+  '/socks-list': typeof AppSocksListRoute
   '/stats': typeof AppStatsRoute
   '/subscription': typeof AppSubscriptionRoute
   '/usage': typeof AppUsageRoute
@@ -163,6 +171,7 @@ export interface FileRoutesById {
   '/_app/proxy-server': typeof AppProxyServerRoute
   '/_app/referral': typeof AppReferralRoute
   '/_app/settings': typeof AppSettingsRoute
+  '/_app/socks-list': typeof AppSocksListRoute
   '/_app/stats': typeof AppStatsRoute
   '/_app/subscription': typeof AppSubscriptionRoute
   '/_app/usage': typeof AppUsageRoute
@@ -183,6 +192,7 @@ export interface FileRouteTypes {
     | '/proxy-server'
     | '/referral'
     | '/settings'
+    | '/socks-list'
     | '/stats'
     | '/subscription'
     | '/usage'
@@ -201,6 +211,7 @@ export interface FileRouteTypes {
     | '/proxy-server'
     | '/referral'
     | '/settings'
+    | '/socks-list'
     | '/stats'
     | '/subscription'
     | '/usage'
@@ -220,6 +231,7 @@ export interface FileRouteTypes {
     | '/_app/proxy-server'
     | '/_app/referral'
     | '/_app/settings'
+    | '/_app/socks-list'
     | '/_app/stats'
     | '/_app/subscription'
     | '/_app/usage'
@@ -274,6 +286,13 @@ declare module '@tanstack/react-router' {
       path: '/stats'
       fullPath: '/stats'
       preLoaderRoute: typeof AppStatsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/socks-list': {
+      id: '/_app/socks-list'
+      path: '/socks-list'
+      fullPath: '/socks-list'
+      preLoaderRoute: typeof AppSocksListRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/settings': {
@@ -379,6 +398,7 @@ interface AppRouteChildren {
   AppProxyServerRoute: typeof AppProxyServerRoute
   AppReferralRoute: typeof AppReferralRoute
   AppSettingsRoute: typeof AppSettingsRoute
+  AppSocksListRoute: typeof AppSocksListRoute
   AppStatsRoute: typeof AppStatsRoute
   AppSubscriptionRoute: typeof AppSubscriptionRoute
   AppUsageRoute: typeof AppUsageRoute
@@ -395,6 +415,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppProxyServerRoute: AppProxyServerRoute,
   AppReferralRoute: AppReferralRoute,
   AppSettingsRoute: AppSettingsRoute,
+  AppSocksListRoute: AppSocksListRoute,
   AppStatsRoute: AppStatsRoute,
   AppSubscriptionRoute: AppSubscriptionRoute,
   AppUsageRoute: AppUsageRoute,
