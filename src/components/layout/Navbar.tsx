@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -37,9 +38,11 @@ export function Navbar() {
         </nav>
 
         <div className="hidden md:flex items-center gap-4">
-          <Button variant="ghost" className="text-foreground hover:text-primary">Log in</Button>
-          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_rgba(0,240,255,0.3)]">
-            Get Started
+          <Button asChild variant="ghost" className="text-foreground hover:text-primary">
+            <Link to="/auth">Log in</Link>
+          </Button>
+          <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_rgba(0,240,255,0.3)]">
+            <Link to="/auth">Get Started</Link>
           </Button>
         </div>
 
@@ -66,8 +69,12 @@ export function Navbar() {
               <a href="#use-cases" className="text-muted-foreground hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>Use Cases</a>
               <a href="#trust" className="text-muted-foreground hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>Network</a>
               <div className="h-px bg-border my-2" />
-              <Button variant="ghost" className="justify-start text-foreground">Log in</Button>
-              <Button className="bg-primary text-primary-foreground w-full">Get Started</Button>
+              <Button asChild variant="ghost" className="justify-start text-foreground">
+                <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>Log in</Link>
+              </Button>
+              <Button asChild className="bg-primary text-primary-foreground w-full">
+                <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>Get Started</Link>
+              </Button>
             </div>
           </motion.div>
         )}

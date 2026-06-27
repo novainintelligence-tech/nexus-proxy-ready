@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Bitcoin, ShieldCheck, Zap } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 export function Hero() {
   return (
@@ -58,11 +59,14 @@ export function Hero() {
             className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4"
           >
             <Button
+              asChild
               size="lg"
               className="w-full sm:w-auto h-14 px-8 text-base sm:text-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_30px_rgba(0,240,255,0.4)] group"
             >
-              Create Free Account
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <Link to="/auth">
+                Create Free Account
+                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </Button>
             <Button
               asChild
