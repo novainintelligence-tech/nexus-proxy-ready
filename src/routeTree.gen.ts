@@ -9,38 +9,225 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppUsageRouteImport } from './routes/_app.usage'
+import { Route as AppSubscriptionRouteImport } from './routes/_app.subscription'
+import { Route as AppStatsRouteImport } from './routes/_app.stats'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppReferralRouteImport } from './routes/_app.referral'
+import { Route as AppProxyServerRouteImport } from './routes/_app.proxy-server'
+import { Route as AppProxiesRouteImport } from './routes/_app.proxies'
+import { Route as AppPlansRouteImport } from './routes/_app.plans'
+import { Route as AppPaymentRouteImport } from './routes/_app.payment'
+import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
+import { Route as AppCartRouteImport } from './routes/_app.cart'
+import { Route as AppApiRouteImport } from './routes/_app.api'
+import { Route as AppAdminRouteImport } from './routes/_app.admin'
+import { Route as AppProxiesProxySettingsRouteImport } from './routes/_app.proxies.proxy-settings'
 
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppUsageRoute = AppUsageRouteImport.update({
+  id: '/usage',
+  path: '/usage',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSubscriptionRoute = AppSubscriptionRouteImport.update({
+  id: '/subscription',
+  path: '/subscription',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStatsRoute = AppStatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReferralRoute = AppReferralRouteImport.update({
+  id: '/referral',
+  path: '/referral',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProxyServerRoute = AppProxyServerRouteImport.update({
+  id: '/proxy-server',
+  path: '/proxy-server',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProxiesRoute = AppProxiesRouteImport.update({
+  id: '/proxies',
+  path: '/proxies',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPlansRoute = AppPlansRouteImport.update({
+  id: '/plans',
+  path: '/plans',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPaymentRoute = AppPaymentRouteImport.update({
+  id: '/payment',
+  path: '/payment',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCartRoute = AppCartRouteImport.update({
+  id: '/cart',
+  path: '/cart',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppApiRoute = AppApiRouteImport.update({
+  id: '/api',
+  path: '/api',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminRoute = AppAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProxiesProxySettingsRoute = AppProxiesProxySettingsRouteImport.update({
+  id: '/proxy-settings',
+  path: '/proxy-settings',
+  getParentRoute: () => AppProxiesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AppAdminRoute
+  '/api': typeof AppApiRoute
+  '/cart': typeof AppCartRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/payment': typeof AppPaymentRoute
+  '/plans': typeof AppPlansRoute
+  '/proxies': typeof AppProxiesRouteWithChildren
+  '/proxy-server': typeof AppProxyServerRoute
+  '/referral': typeof AppReferralRoute
+  '/settings': typeof AppSettingsRoute
+  '/stats': typeof AppStatsRoute
+  '/subscription': typeof AppSubscriptionRoute
+  '/usage': typeof AppUsageRoute
+  '/proxies/proxy-settings': typeof AppProxiesProxySettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AppAdminRoute
+  '/api': typeof AppApiRoute
+  '/cart': typeof AppCartRoute
+  '/dashboard': typeof AppDashboardRoute
+  '/payment': typeof AppPaymentRoute
+  '/plans': typeof AppPlansRoute
+  '/proxies': typeof AppProxiesRouteWithChildren
+  '/proxy-server': typeof AppProxyServerRoute
+  '/referral': typeof AppReferralRoute
+  '/settings': typeof AppSettingsRoute
+  '/stats': typeof AppStatsRoute
+  '/subscription': typeof AppSubscriptionRoute
+  '/usage': typeof AppUsageRoute
+  '/proxies/proxy-settings': typeof AppProxiesProxySettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/_app/admin': typeof AppAdminRoute
+  '/_app/api': typeof AppApiRoute
+  '/_app/cart': typeof AppCartRoute
+  '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/payment': typeof AppPaymentRoute
+  '/_app/plans': typeof AppPlansRoute
+  '/_app/proxies': typeof AppProxiesRouteWithChildren
+  '/_app/proxy-server': typeof AppProxyServerRoute
+  '/_app/referral': typeof AppReferralRoute
+  '/_app/settings': typeof AppSettingsRoute
+  '/_app/stats': typeof AppStatsRoute
+  '/_app/subscription': typeof AppSubscriptionRoute
+  '/_app/usage': typeof AppUsageRoute
+  '/_app/proxies/proxy-settings': typeof AppProxiesProxySettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/api'
+    | '/cart'
+    | '/dashboard'
+    | '/payment'
+    | '/plans'
+    | '/proxies'
+    | '/proxy-server'
+    | '/referral'
+    | '/settings'
+    | '/stats'
+    | '/subscription'
+    | '/usage'
+    | '/proxies/proxy-settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin'
+    | '/api'
+    | '/cart'
+    | '/dashboard'
+    | '/payment'
+    | '/plans'
+    | '/proxies'
+    | '/proxy-server'
+    | '/referral'
+    | '/settings'
+    | '/stats'
+    | '/subscription'
+    | '/usage'
+    | '/proxies/proxy-settings'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/_app/admin'
+    | '/_app/api'
+    | '/_app/cart'
+    | '/_app/dashboard'
+    | '/_app/payment'
+    | '/_app/plans'
+    | '/_app/proxies'
+    | '/_app/proxy-server'
+    | '/_app/referral'
+    | '/_app/settings'
+    | '/_app/stats'
+    | '/_app/subscription'
+    | '/_app/usage'
+    | '/_app/proxies/proxy-settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +235,156 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/usage': {
+      id: '/_app/usage'
+      path: '/usage'
+      fullPath: '/usage'
+      preLoaderRoute: typeof AppUsageRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/subscription': {
+      id: '/_app/subscription'
+      path: '/subscription'
+      fullPath: '/subscription'
+      preLoaderRoute: typeof AppSubscriptionRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/stats': {
+      id: '/_app/stats'
+      path: '/stats'
+      fullPath: '/stats'
+      preLoaderRoute: typeof AppStatsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/referral': {
+      id: '/_app/referral'
+      path: '/referral'
+      fullPath: '/referral'
+      preLoaderRoute: typeof AppReferralRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/proxy-server': {
+      id: '/_app/proxy-server'
+      path: '/proxy-server'
+      fullPath: '/proxy-server'
+      preLoaderRoute: typeof AppProxyServerRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/proxies': {
+      id: '/_app/proxies'
+      path: '/proxies'
+      fullPath: '/proxies'
+      preLoaderRoute: typeof AppProxiesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/plans': {
+      id: '/_app/plans'
+      path: '/plans'
+      fullPath: '/plans'
+      preLoaderRoute: typeof AppPlansRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/payment': {
+      id: '/_app/payment'
+      path: '/payment'
+      fullPath: '/payment'
+      preLoaderRoute: typeof AppPaymentRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dashboard': {
+      id: '/_app/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/cart': {
+      id: '/_app/cart'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof AppCartRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/api': {
+      id: '/_app/api'
+      path: '/api'
+      fullPath: '/api'
+      preLoaderRoute: typeof AppApiRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin': {
+      id: '/_app/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AppAdminRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/proxies/proxy-settings': {
+      id: '/_app/proxies/proxy-settings'
+      path: '/proxy-settings'
+      fullPath: '/proxies/proxy-settings'
+      preLoaderRoute: typeof AppProxiesProxySettingsRouteImport
+      parentRoute: typeof AppProxiesRoute
+    }
   }
 }
 
+interface AppProxiesRouteChildren {
+  AppProxiesProxySettingsRoute: typeof AppProxiesProxySettingsRoute
+}
+
+const AppProxiesRouteChildren: AppProxiesRouteChildren = {
+  AppProxiesProxySettingsRoute: AppProxiesProxySettingsRoute,
+}
+
+const AppProxiesRouteWithChildren = AppProxiesRoute._addFileChildren(
+  AppProxiesRouteChildren,
+)
+
+interface AppRouteChildren {
+  AppAdminRoute: typeof AppAdminRoute
+  AppApiRoute: typeof AppApiRoute
+  AppCartRoute: typeof AppCartRoute
+  AppDashboardRoute: typeof AppDashboardRoute
+  AppPaymentRoute: typeof AppPaymentRoute
+  AppPlansRoute: typeof AppPlansRoute
+  AppProxiesRoute: typeof AppProxiesRouteWithChildren
+  AppProxyServerRoute: typeof AppProxyServerRoute
+  AppReferralRoute: typeof AppReferralRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppStatsRoute: typeof AppStatsRoute
+  AppSubscriptionRoute: typeof AppSubscriptionRoute
+  AppUsageRoute: typeof AppUsageRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAdminRoute: AppAdminRoute,
+  AppApiRoute: AppApiRoute,
+  AppCartRoute: AppCartRoute,
+  AppDashboardRoute: AppDashboardRoute,
+  AppPaymentRoute: AppPaymentRoute,
+  AppPlansRoute: AppPlansRoute,
+  AppProxiesRoute: AppProxiesRouteWithChildren,
+  AppProxyServerRoute: AppProxyServerRoute,
+  AppReferralRoute: AppReferralRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppStatsRoute: AppStatsRoute,
+  AppSubscriptionRoute: AppSubscriptionRoute,
+  AppUsageRoute: AppUsageRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
