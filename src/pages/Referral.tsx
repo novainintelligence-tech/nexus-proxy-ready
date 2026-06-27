@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useGetMe } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

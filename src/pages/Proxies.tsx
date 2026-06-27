@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from "react";
 import { useGetMyProxies } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";

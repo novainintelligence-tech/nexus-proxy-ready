@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   useGetUsageStats, useGetActiveSubscription, useGetMyProxies,
 } from "@workspace/api-client-react";

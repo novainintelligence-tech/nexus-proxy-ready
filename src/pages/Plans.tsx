@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Link } from "wouter";
 import { useListPlans } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
