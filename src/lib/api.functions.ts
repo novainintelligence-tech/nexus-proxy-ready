@@ -333,3 +333,218 @@ export const listMyReferrals = createServerFn({ method: "GET" })
       .eq("referrer_id", context.userId);
     return data ?? [];
   });
+
+// ============ ORDER PROVISIONING WORKFLOW ============
+
+// ----- Create order after payment -----
+const createOrderInput = z.object({
+  paymentId: z.string().uuid(),
+  planId: z.string().uuid(),
+  country: z.string().optional(),
+  proxyType: z.string().default("residential"),
+  authType: z.string().default("userpass"),
+});
+
+export const createOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v) => createOrderInput.parse(v))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    
+    // Verify payment exists and belongs to user
+    const { data: payment, error: paymentError } = await supabase
+      .from("payments")
+      .select("id, status")
+      .eq("id", data.paymentId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    
+    if (paymentError || !payment) {
+      throw new Error("Payment not found");
+    }
+    
+    // Only proceed if payment is confirmed
+    if (payment.status !== "confirmed") {
+      throw new Error("Payment not confirmed yet");
+    }
+    
+    // Verify plan exists
+    const { data: plan, error: planError } = await supabase
+      .from("plans")
+      .select("id")
+      .eq("id", data.planId)
+      .maybeSingle();
+    
+    if (planError || !plan) {
+      throw new Error("Plan not found");
+    }
+    
+    // Create order with status=pending
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .insert({
+        user_id: userId,
+        payment_id: data.paymentId,
+        plan_id: data.planId,
+        country: data.country,
+        proxy_type: data.proxyType,
+        auth_type: data.authType,
+        status: "pending",
+      })
+      .select()
+      .single();
+    
+    if (orderError || !order) {
+      throw new Error(`Failed to create order: ${orderError?.message}`);
+    }
+    
+    return {
+      orderId: order.id,
+      status: order.status,
+      createdAt: order.created_at,
+    };
+  });
+
+// ----- List my orders -----
+export const listMyOrders = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("orders")
+      .select("*, plan:plans(name, price_cents), assignment:proxy_assignments(proxy:proxies(ip, port, proxy_type, country))")
+      .eq("user_id", context.userId)
+      .order("created_at", { ascending: false });
+    
+    if (error) throw new Error(error.message);
+    
+    return (data ?? []).map((order: any) => ({
+      id: order.id,
+      planName: order.plan?.name,
+      status: order.status,
+      country: order.country,
+      proxyType: order.proxy_type,
+      authType: order.auth_type,
+      proxy: order.assignment?.[0]?.proxy ? {
+        ip: String(order.assignment[0].proxy.ip),
+        port: order.assignment[0].proxy.port,
+        type: order.assignment[0].proxy.proxy_type,
+      } : null,
+      provisionedAt: order.provisioned_at,
+      deliveredAt: order.delivered_at,
+      expiresAt: order.expires_at,
+      createdAt: order.created_at,
+    }));
+  });
+
+// ----- Get order details -----
+export const getOrderDetails = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v) => z.object({ orderId: z.string().uuid() }).parse(v))
+  .handler(async ({ context, data }) => {
+    const { data: order, error } = await context.supabase
+      .from("orders")
+      .select(`
+        *,
+        plan:plans(*),
+        assignment:proxy_assignments(
+          *,
+          proxy:proxies(ip, port, username, password, proxy_type, country, region, city)
+        )
+      `)
+      .eq("id", data.orderId)
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    
+    if (error || !order) throw new Error("Order not found");
+    
+    const assignment = (order as any).assignment?.[0];
+    return {
+      id: order.id,
+      status: order.status,
+      plan: (order as any).plan,
+      proxy: assignment?.proxy ? {
+        ip: String(assignment.proxy.ip),
+        port: assignment.proxy.port,
+        username: assignment.proxy.username,
+        password: assignment.proxy.password,
+        type: assignment.proxy.proxy_type,
+        country: assignment.proxy.country,
+        region: assignment.proxy.region,
+        city: assignment.proxy.city,
+      } : null,
+      provisioningAttempts: order.provisioning_attempts,
+      failedReason: order.failed_reason,
+      createdAt: order.created_at,
+      expiresAt: order.expires_at,
+    };
+  });
+
+// ----- Admin: Trigger manual provisioning -----
+export const triggerProvisioning = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v) => z.object({ orderId: z.string().uuid() }).parse(v))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    
+    // Verify user is admin
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+    if (!isAdmin) throw new Error("Forbidden");
+    
+    // Verify order exists
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .select("*")
+      .eq("id", data.orderId)
+      .maybeSingle();
+    
+    if (orderError || !order) throw new Error("Order not found");
+    
+    // Update status to provisioning
+    const { data: updated, error: updateError } = await supabase
+      .from("orders")
+      .update({
+        status: "provisioning",
+        provisioning_attempts: (order.provisioning_attempts || 0) + 1,
+      })
+      .eq("id", data.orderId)
+      .select()
+      .single();
+    
+    if (updateError) throw new Error(updateError.message);
+    
+    // Log the provisioning attempt
+    await supabase.from("provisioning_logs").insert({
+      order_id: data.orderId,
+      status: "pending",
+      attempt_number: updated.provisioning_attempts,
+      worker_id: "manual",
+    });
+    
+    return { status: updated.status };
+  });
+
+// ----- Get available proxy count for filters -----
+export const getProxyAvailability = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v) => z.object({
+    country: z.string().optional(),
+    proxyType: z.string().optional(),
+    authType: z.string().optional(),
+  }).parse(v))
+  .handler(async ({ context, data }) => {
+    const { supabase } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    
+    const { data: count, error } = await supabaseAdmin
+      .rpc("count_available_proxies", {
+        p_country: data.country || null,
+        p_proxy_type: data.proxyType || null,
+        p_auth_type: data.authType || null,
+      });
+    
+    if (error) throw new Error(error.message);
+    return { available: count ?? 0 };
+  });
