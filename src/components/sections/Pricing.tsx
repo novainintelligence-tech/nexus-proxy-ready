@@ -21,19 +21,32 @@ type Plan = {
 
 const PLANS: Record<string, Plan[]> = {
   socks5: [
-    { id: "socks5-starter", name: "Starter", description: "Single-region SOCKS5 for light scraping.", priceUsd: 1500, durationDays: 30, proxyCount: 5, bandwidthGb: 50, features: ["1 region", "HTTP/SOCKS5", "Email support"] },
-    { id: "socks5-pro", name: "Pro", description: "Multi-region with sticky sessions.", priceUsd: 4900, durationDays: 30, proxyCount: 25, bandwidthGb: 250, features: ["10 regions", "Sticky sessions", "Priority support"], popular: true },
-    { id: "socks5-business", name: "Business", description: "Scale across the full network.", priceUsd: 14900, durationDays: 30, proxyCount: 100, bandwidthGb: 1000, features: ["100+ regions", "Sub-users", "API access"] },
+    { id: "socks5-1d-50", name: "1 Day Test — 50 SOCKS", description: "1-day trial pack", priceUsd: 100, durationDays: 1, proxyCount: 50, bandwidthGb: 10, features: ["Trial pack", "Instant delivery", "Email support"] },
+    // 15-Day Plans
+    { id: "socks5-15d-50", name: "15d — 50 SOCKS", description: "15-day access to 50 SOCKS", priceUsd: 500, durationDays: 15, proxyCount: 50, bandwidthGb: 50, features: ["15-day", "Global coverage"] },
+    { id: "socks5-15d-100", name: "15d — 100 SOCKS", description: "15-day access to 100 SOCKS", priceUsd: 700, durationDays: 15, proxyCount: 100, bandwidthGb: 100, features: ["15-day", "Global coverage"] },
+    { id: "socks5-15d-200", name: "15d — 200 SOCKS", description: "15-day access to 200 SOCKS", priceUsd: 1000, durationDays: 15, proxyCount: 200, bandwidthGb: 200, features: ["15-day", "Global coverage"] },
+    { id: "socks5-15d-400", name: "15d — 400 SOCKS", description: "15-day access to 400 SOCKS", priceUsd: 1500, durationDays: 15, proxyCount: 400, bandwidthGb: 400, features: ["15-day", "Global coverage"] },
+    { id: "socks5-15d-600", name: "15d — 600 SOCKS", description: "15-day access to 600 SOCKS", priceUsd: 2000, durationDays: 15, proxyCount: 600, bandwidthGb: 600, features: ["15-day", "Global coverage"] },
+    { id: "socks5-15d-900", name: "15d — 900 SOCKS", description: "15-day access to 900 SOCKS", priceUsd: 2900, durationDays: 15, proxyCount: 900, bandwidthGb: 900, features: ["15-day", "Global coverage"] },
+    // 30-Day Plans
+    { id: "socks5-30d-50", name: "30d — 50 SOCKS", description: "30-day access to 50 SOCKS", priceUsd: 800, durationDays: 30, proxyCount: 50, bandwidthGb: 50, features: ["30-day", "Global coverage"] },
+    { id: "socks5-30d-100", name: "30d — 100 SOCKS", description: "30-day access to 100 SOCKS", priceUsd: 1300, durationDays: 30, proxyCount: 100, bandwidthGb: 100, features: ["30-day", "Global coverage"] },
+    { id: "socks5-30d-200", name: "30d — 200 SOCKS", description: "30-day access to 200 SOCKS", priceUsd: 1800, durationDays: 30, proxyCount: 200, bandwidthGb: 200, features: ["30-day", "Global coverage"] },
+    { id: "socks5-30d-400", name: "30d — 400 SOCKS", description: "30-day access to 400 SOCKS", priceUsd: 2800, durationDays: 30, proxyCount: 400, bandwidthGb: 400, features: ["30-day", "Global coverage"] },
+    { id: "socks5-30d-600", name: "30d — 600 SOCKS", description: "30-day access to 600 SOCKS", priceUsd: 3800, durationDays: 30, proxyCount: 600, bandwidthGb: 600, features: ["30-day", "Global coverage"] },
+    { id: "socks5-30d-900", name: "30d — 900 SOCKS", description: "30-day access to 900 SOCKS", priceUsd: 5300, durationDays: 30, proxyCount: 900, bandwidthGb: 900, features: ["30-day", "Global coverage"] },
+    // 365-Day Plans
+    { id: "socks5-365d-50", name: "365d — 50 SOCKS", description: "1-year access to 50 SOCKS", priceUsd: 8800, durationDays: 365, proxyCount: 50, bandwidthGb: 500, features: ["1-year", "Priority support"] },
+    { id: "socks5-365d-100", name: "365d — 100 SOCKS", description: "1-year access to 100 SOCKS", priceUsd: 14300, durationDays: 365, proxyCount: 100, bandwidthGb: 1000, features: ["1-year", "Priority support"] },
   ],
-  isp: [
-    { id: "isp-lite", name: "ISP Lite", description: "Rotating ISP IPs for stealth automation.", priceUsd: 2900, durationDays: 30, proxyCount: 10, bandwidthGb: 100, features: ["Rotating per request", "US + EU pools", "City targeting"] },
-    { id: "isp-pro", name: "ISP Pro", description: "Higher concurrency, broader pool.", priceUsd: 8900, durationDays: 30, proxyCount: 50, bandwidthGb: 500, features: ["Global pools", "Sticky 30m", "Webhooks"], popular: true },
-    { id: "isp-scale", name: "ISP Scale", description: "Enterprise rotating ISP fleet.", priceUsd: 19900, durationDays: 30, proxyCount: 200, bandwidthGb: 2000, features: ["Dedicated pool", "SLA", "Account manager"] },
+  credits: [
+    { id: "credits-starter-50", name: "Starter — 50 Credits", description: "Never-expire credits — good for small needs", priceUsd: 600, durationDays: 3650, proxyCount: 0, bandwidthGb: 0, features: ["50 credits", "Never expire"] },
+    { id: "credits-standard-240", name: "Standard — 240 Credits", description: "Best value for regular users", priceUsd: 1400, durationDays: 3650, proxyCount: 0, bandwidthGb: 0, features: ["240 credits", "Never expire"] },
+    { id: "credits-premium-900", name: "Premium — 900 Credits", description: "Large pack for heavy users", priceUsd: 3900, durationDays: 3650, proxyCount: 0, bandwidthGb: 0, features: ["900 credits", "Never expire"], popular: true },
   ],
   unlimited: [
     { id: "unlimited-30", name: "Unlimited 30d", description: "All-you-can-eat residential bandwidth.", priceUsd: 9900, durationDays: 30, proxyCount: 1, bandwidthGb: 9999, features: ["Unlimited GB", "Residential pool", "Single port gateway"] },
-    { id: "unlimited-pro", name: "Unlimited Pro", description: "Higher concurrency cap.", priceUsd: 19900, durationDays: 30, proxyCount: 1, bandwidthGb: 9999, features: ["Unlimited GB", "500 concurrent", "Country selector"], popular: true },
-    { id: "unlimited-max", name: "Unlimited Max", description: "Top-tier throughput.", priceUsd: 39900, durationDays: 30, proxyCount: 1, bandwidthGb: 9999, features: ["Unlimited GB", "Unlimited concurrent", "Premium routing"] },
   ],
 };
 
@@ -52,18 +65,18 @@ export function Pricing() {
         >
           <Badge className="mb-4 bg-primary/10 text-primary border-primary/30">
             <Tag className="w-3 h-3 mr-1.5" />
-            Pay-as-you-go &middot; Crypto only
+            🚀 PREMIUM SOCKS5 PLANS — Crypto & BTC payments
           </Badge>
-          <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">Simple, transparent pricing</h2>
+          <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">Plans & Credit Packs</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Pick a category, pay in BTC, USDT or USDC, and your proxies appear in the dashboard the second the transaction confirms.
+            Fast, reliable SOCKS5 with flexible durations and never-expire credit packs. Pay with BTC, USDT, or USDC.
           </p>
         </motion.div>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as keyof typeof PLANS)} className="flex flex-col items-center">
           <TabsList className="mb-10 bg-card/60 border border-border">
             <TabsTrigger value="socks5">SOCKS5 Proxies</TabsTrigger>
-            <TabsTrigger value="isp">Rotating ISP</TabsTrigger>
+            <TabsTrigger value="credits">Credit Packs</TabsTrigger>
             <TabsTrigger value="unlimited">Unlimited Bandwidth</TabsTrigger>
           </TabsList>
         </Tabs>
