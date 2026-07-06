@@ -733,6 +733,7 @@ function SettingsTab() {
 
 function PlansTab() {
   const { data: plans, isLoading } = useListPlans();
+  const syncPlans = useAdminSyncPlans();
   const createPlan = useAdminCreatePlan();
   const { toast } = useToast();
 
@@ -783,6 +784,31 @@ function PlansTab() {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            if (!confirm("Sync frontend pricing into the database? This will upsert plans.")) return;
+            // gather plans from frontend PLANS constant
+            import("@/components/sections/Pricing").then((mod) => {
+              const plansFlat = Object.values(mod.PLANS).flat();
+              syncPlans.mutate(
+                { plans: plansFlat },
+                {
+                  onSuccess: () => {
+                    queryClient.invalidateQueries({ queryKey: getListPlansQueryKey() });
+                    toast({ title: "Pricing synced" });
+                  },
+                  onError: () => toast({ title: "Sync failed", variant: "destructive" }),
+                },
+              );
+            });
+          }}
+        >
+          Sync Frontend Pricing
+        </Button>
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>Create New Plan</CardTitle>

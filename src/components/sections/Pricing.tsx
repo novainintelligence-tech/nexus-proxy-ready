@@ -19,7 +19,7 @@ type Plan = {
   popular?: boolean;
 };
 
-const PLANS: Record<string, Plan[]> = {
+export const PLANS: Record<string, Plan[]> = {
   socks5: [
     { id: "socks5-1d-50", name: "1 Day Test — 50 SOCKS", description: "1-day trial pack", priceUsd: 100, durationDays: 1, proxyCount: 50, bandwidthGb: 10, features: ["Trial pack", "Instant delivery", "Email support"] },
     // 15-Day Plans

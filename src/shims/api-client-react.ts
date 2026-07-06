@@ -48,6 +48,23 @@ export const useListPlans = () =>
   useQuery({ queryKey: getListPlansQueryKey(), queryFn: () => api.listPlans() });
 export const useCreatePayment = () => noopMutation();
 export const useSubmitPaymentHash = () => noopMutation();
+// Implemented hooks to call server functions for dev
+export const useCreatePayment = () => {
+  const qc = useQueryClient();
+  const m = useMutation({
+    mutationFn: (vars: { data: { planId?: string; currency: string } }) => api.createPayment({ data: vars.data }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: getListMyPaymentsQueryKey() }),
+  });
+  return { ...m, isPending: (m as any).isPending } as any;
+};
+
+export const useSubmitPaymentHash = () => {
+  const qc = useQueryClient();
+  const m = useMutation({
+    mutationFn: (vars: { id: string; data: { txHash: string } }) => api.submitPaymentHash({ data: vars }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: getListMyPaymentsQueryKey() }),
+  });
+  return { ...m, isPending: (m as any).isPending } as any;
 export const useListMyPayments = () =>
   useQuery({ queryKey: getListMyPaymentsQueryKey(), queryFn: () => api.listMyPayments() });
 
@@ -117,3 +134,12 @@ export const useAdminTriggerProxyIngest = () => noopMutation();
 export const useAdminTriggerProxyHealth = () => noopMutation();
 export const useAdminGetProxyPoolStats = () =>
   emptyQuery({ total: 0, healthy: 0, regions: [] });
+
+export const useAdminSyncPlans = () => {
+  const qc = useQueryClient();
+  const m = useMutation({
+    mutationFn: (vars: { plans: any[] }) => api.adminSyncPlans({ data: { plans: vars.plans } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: getListPlansQueryKey() }),
+  });
+  return { ...m, isPending: (m as any).isPending } as any;
+};
