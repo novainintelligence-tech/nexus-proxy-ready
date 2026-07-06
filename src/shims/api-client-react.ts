@@ -65,6 +65,8 @@ export const useSubmitPaymentHash = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: getListMyPaymentsQueryKey() }),
   });
   return { ...m, isPending: (m as any).isPending } as any;
+};
+
 export const useListMyPayments = () =>
   useQuery({ queryKey: getListMyPaymentsQueryKey(), queryFn: () => api.listMyPayments() });
 
