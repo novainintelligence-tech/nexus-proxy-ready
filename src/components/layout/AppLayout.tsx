@@ -32,20 +32,10 @@ const groups: Group[] = [
     ],
   },
   {
-    label: "Products",
-    items: [
-      { href: "/proxy-server", label: "Proxy Server", icon: Server },
-      { href: "/static-residential", label: "Static Residential", icon: Globe },
-      { href: "/rotating-residential", label: "Rotating Residential", icon: RotateCw },
-    ],
-  },
-  {
     label: "Account",
     items: [
       { href: "/plans", label: "Plans", icon: CreditCard },
       { href: "/subscription", label: "Subscription", icon: Calendar },
-      { href: "/referral", label: "Referral", icon: Users2 },
-      { href: "/api", label: "API", icon: Code2 },
       { href: "/settings", label: "Settings", icon: SettingsIcon },
     ],
   },
