@@ -27,6 +27,7 @@ import { Route as AppCartRouteImport } from './routes/_app.cart'
 import { Route as AppApiRouteImport } from './routes/_app.api'
 import { Route as AppAdminRouteImport } from './routes/_app.admin'
 import { Route as AppProxiesProxySettingsRouteImport } from './routes/_app.proxies.proxy-settings'
+import { Route as ApiPublicTelegramBotRouteImport } from './routes/api/public/telegram.bot'
 import { Route as ApiPublicAuthTelegramRouteImport } from './routes/api/public/auth/telegram'
 
 const AuthRoute = AuthRouteImport.update({
@@ -118,6 +119,11 @@ const AppProxiesProxySettingsRoute = AppProxiesProxySettingsRouteImport.update({
   path: '/proxy-settings',
   getParentRoute: () => AppProxiesRoute,
 } as any)
+const ApiPublicTelegramBotRoute = ApiPublicTelegramBotRouteImport.update({
+  id: '/api/public/telegram/bot',
+  path: '/api/public/telegram/bot',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicAuthTelegramRoute = ApiPublicAuthTelegramRouteImport.update({
   id: '/api/public/auth/telegram',
   path: '/api/public/auth/telegram',
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/usage': typeof AppUsageRoute
   '/proxies/proxy-settings': typeof AppProxiesProxySettingsRoute
   '/api/public/auth/telegram': typeof ApiPublicAuthTelegramRoute
+  '/api/public/telegram/bot': typeof ApiPublicTelegramBotRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -163,6 +170,7 @@ export interface FileRoutesByTo {
   '/usage': typeof AppUsageRoute
   '/proxies/proxy-settings': typeof AppProxiesProxySettingsRoute
   '/api/public/auth/telegram': typeof ApiPublicAuthTelegramRoute
+  '/api/public/telegram/bot': typeof ApiPublicTelegramBotRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -185,6 +193,7 @@ export interface FileRoutesById {
   '/_app/usage': typeof AppUsageRoute
   '/_app/proxies/proxy-settings': typeof AppProxiesProxySettingsRoute
   '/api/public/auth/telegram': typeof ApiPublicAuthTelegramRoute
+  '/api/public/telegram/bot': typeof ApiPublicTelegramBotRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -207,6 +216,7 @@ export interface FileRouteTypes {
     | '/usage'
     | '/proxies/proxy-settings'
     | '/api/public/auth/telegram'
+    | '/api/public/telegram/bot'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -227,6 +237,7 @@ export interface FileRouteTypes {
     | '/usage'
     | '/proxies/proxy-settings'
     | '/api/public/auth/telegram'
+    | '/api/public/telegram/bot'
   id:
     | '__root__'
     | '/'
@@ -248,6 +259,7 @@ export interface FileRouteTypes {
     | '/_app/usage'
     | '/_app/proxies/proxy-settings'
     | '/api/public/auth/telegram'
+    | '/api/public/telegram/bot'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -255,6 +267,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
   ApiPublicAuthTelegramRoute: typeof ApiPublicAuthTelegramRoute
+  ApiPublicTelegramBotRoute: typeof ApiPublicTelegramBotRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -385,6 +398,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProxiesProxySettingsRouteImport
       parentRoute: typeof AppProxiesRoute
     }
+    '/api/public/telegram/bot': {
+      id: '/api/public/telegram/bot'
+      path: '/api/public/telegram/bot'
+      fullPath: '/api/public/telegram/bot'
+      preLoaderRoute: typeof ApiPublicTelegramBotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/auth/telegram': {
       id: '/api/public/auth/telegram'
       path: '/api/public/auth/telegram'
@@ -448,7 +468,18 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
   ApiPublicAuthTelegramRoute: ApiPublicAuthTelegramRoute,
+  ApiPublicTelegramBotRoute: ApiPublicTelegramBotRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
