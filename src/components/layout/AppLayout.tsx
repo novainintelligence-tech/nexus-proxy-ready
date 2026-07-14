@@ -4,7 +4,7 @@ import { Link, useLocation } from "wouter";
 import {
   Shield, LayoutDashboard, ServerCog, List, Settings as SettingsIcon, BarChart3,
   Server, Globe, RotateCw, CreditCard, Calendar, Users2, Code2, Sliders,
-  LogOut, Menu, ChevronDown, ShieldAlert, ShoppingCart,
+  LogOut, Menu, ChevronDown, ShieldAlert, ShoppingCart, Wrench,
 } from "lucide-react";
 import { useClerk } from "@clerk/react";
 import { useGetMe } from "@workspace/api-client-react";
@@ -29,6 +29,12 @@ const groups: Group[] = [
       { href: "/socks-list", label: "Socks List", icon: List },
       { href: "/proxies/proxy-settings", label: "Proxy Settings", icon: Sliders },
       { href: "/stats", label: "Stats", icon: BarChart3 },
+    ],
+  },
+  {
+    label: "Tools",
+    items: [
+      { href: "/tools", label: "Proxy Tools", icon: Wrench },
     ],
   },
   {
