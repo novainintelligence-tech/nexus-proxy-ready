@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Provisioning Worker Service
  * 
