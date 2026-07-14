@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppUsageRouteImport } from './routes/_app.usage'
+import { Route as AppToolsRouteImport } from './routes/_app.tools'
 import { Route as AppSubscriptionRouteImport } from './routes/_app.subscription'
 import { Route as AppStatsRouteImport } from './routes/_app.stats'
 import { Route as AppSocksListRouteImport } from './routes/_app.socks-list'
@@ -47,6 +48,11 @@ const IndexRoute = IndexRouteImport.update({
 const AppUsageRoute = AppUsageRouteImport.update({
   id: '/usage',
   path: '/usage',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppToolsRoute = AppToolsRouteImport.update({
+  id: '/tools',
+  path: '/tools',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSubscriptionRoute = AppSubscriptionRouteImport.update({
@@ -146,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/socks-list': typeof AppSocksListRoute
   '/stats': typeof AppStatsRoute
   '/subscription': typeof AppSubscriptionRoute
+  '/tools': typeof AppToolsRoute
   '/usage': typeof AppUsageRoute
   '/proxies/proxy-settings': typeof AppProxiesProxySettingsRoute
   '/api/public/auth/telegram': typeof ApiPublicAuthTelegramRoute
@@ -167,6 +174,7 @@ export interface FileRoutesByTo {
   '/socks-list': typeof AppSocksListRoute
   '/stats': typeof AppStatsRoute
   '/subscription': typeof AppSubscriptionRoute
+  '/tools': typeof AppToolsRoute
   '/usage': typeof AppUsageRoute
   '/proxies/proxy-settings': typeof AppProxiesProxySettingsRoute
   '/api/public/auth/telegram': typeof ApiPublicAuthTelegramRoute
@@ -190,6 +198,7 @@ export interface FileRoutesById {
   '/_app/socks-list': typeof AppSocksListRoute
   '/_app/stats': typeof AppStatsRoute
   '/_app/subscription': typeof AppSubscriptionRoute
+  '/_app/tools': typeof AppToolsRoute
   '/_app/usage': typeof AppUsageRoute
   '/_app/proxies/proxy-settings': typeof AppProxiesProxySettingsRoute
   '/api/public/auth/telegram': typeof ApiPublicAuthTelegramRoute
@@ -213,6 +222,7 @@ export interface FileRouteTypes {
     | '/socks-list'
     | '/stats'
     | '/subscription'
+    | '/tools'
     | '/usage'
     | '/proxies/proxy-settings'
     | '/api/public/auth/telegram'
@@ -234,6 +244,7 @@ export interface FileRouteTypes {
     | '/socks-list'
     | '/stats'
     | '/subscription'
+    | '/tools'
     | '/usage'
     | '/proxies/proxy-settings'
     | '/api/public/auth/telegram'
@@ -256,6 +267,7 @@ export interface FileRouteTypes {
     | '/_app/socks-list'
     | '/_app/stats'
     | '/_app/subscription'
+    | '/_app/tools'
     | '/_app/usage'
     | '/_app/proxies/proxy-settings'
     | '/api/public/auth/telegram'
@@ -298,6 +310,13 @@ declare module '@tanstack/react-router' {
       path: '/usage'
       fullPath: '/usage'
       preLoaderRoute: typeof AppUsageRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/tools': {
+      id: '/_app/tools'
+      path: '/tools'
+      fullPath: '/tools'
+      preLoaderRoute: typeof AppToolsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/subscription': {
@@ -441,6 +460,7 @@ interface AppRouteChildren {
   AppSocksListRoute: typeof AppSocksListRoute
   AppStatsRoute: typeof AppStatsRoute
   AppSubscriptionRoute: typeof AppSubscriptionRoute
+  AppToolsRoute: typeof AppToolsRoute
   AppUsageRoute: typeof AppUsageRoute
 }
 
@@ -458,6 +478,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSocksListRoute: AppSocksListRoute,
   AppStatsRoute: AppStatsRoute,
   AppSubscriptionRoute: AppSubscriptionRoute,
+  AppToolsRoute: AppToolsRoute,
   AppUsageRoute: AppUsageRoute,
 }
 
