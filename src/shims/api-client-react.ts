@@ -46,9 +46,6 @@ export const useGetMe = () =>
 // ---------- plans / payments ----------
 export const useListPlans = () =>
   useQuery({ queryKey: getListPlansQueryKey(), queryFn: () => api.listPlans() });
-export const useCreatePayment = () => noopMutation();
-export const useSubmitPaymentHash = () => noopMutation();
-// Implemented hooks to call server functions for dev
 export const useCreatePayment = () => {
   const qc = useQueryClient();
   const m = useMutation({
