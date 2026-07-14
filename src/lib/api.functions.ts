@@ -322,140 +322,136 @@ export const getUsageStats = createServerFn({ method: "GET" })
       requests,
       perDay: rows.map((r) => ({ date: r.recorded_at, bytes: Number(r.bytes_used ?? 0) })).reverse(),
     };
+  });
 
-    // ----- create payment / checkout -----
-    const createPaymentInput = z.object({
-      planId: z.string().uuid().optional(),
-      currency: z.string().default("BTC"),
-    });
+// ----- create payment / checkout -----
+const createPaymentInput = z.object({
+  planId: z.string().uuid().optional(),
+  currency: z.string().default("BTC"),
+});
 
-    export const createPayment = createServerFn({ method: "POST" })
-      .middleware([requireSupabaseAuth])
-      .inputValidator((v) => createPaymentInput.parse(v))
-      .handler(async ({ context, data }) => {
-        const { supabase, userId } = context;
+export const createPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v) => createPaymentInput.parse(v))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
 
-        // Resolve plan price
-        let priceCents = 0;
-        let planRecord: any = null;
-        if (data.planId) {
-          const { data: p, error } = await supabase.from("plans").select("id, name, priceUsd").eq("id", data.planId).maybeSingle();
-          if (error || !p) throw new Error("Plan not found");
-          planRecord = p;
-          priceCents = p.priceUsd ?? 0;
+    // Resolve plan price
+    let priceCents = 0;
+    let planRecord: any = null;
+    if (data.planId) {
+      const { data: p, error } = await supabase.from("plans").select("id, name, priceUsd").eq("id", data.planId).maybeSingle();
+      if (error || !p) throw new Error("Plan not found");
+      planRecord = p;
+      priceCents = p.priceUsd ?? 0;
+    } else {
+      const { data: cart, error } = await supabase.from("cart_items").select("price_cents").eq("user_id", userId);
+      if (error) throw new Error("Failed to read cart");
+      priceCents = (cart ?? []).reduce((s: number, r: any) => s + (r.price_cents || 0), 0);
+    }
+
+    const id = randomUUID();
+    const insert = {
+      id,
+      user_id: userId,
+      plan_id: data.planId ?? null,
+      amount_cents: priceCents,
+      amount_usd: Math.round(priceCents),
+      currency: data.currency,
+      status: "pending",
+      created_at: new Date().toISOString(),
+    } as any;
+
+    const { error: insertError } = await supabase.from("payments").insert(insert);
+    if (insertError) throw new Error(insertError.message);
+
+    const btcpayUrl = process.env.BTCPAY_URL;
+    const btcpayKey = process.env.BTCPAY_API_KEY;
+    let checkoutUrl: string | null = null;
+
+    if (btcpayUrl && btcpayKey && /BTC|USDT|USDC/i.test(data.currency)) {
+      try {
+        const price = (priceCents / 100).toFixed(2);
+        const res = await fetch(`${btcpayUrl.replace(/\/$/, "")}/invoices`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `token ${btcpayKey}`,
+          },
+          body: JSON.stringify({
+            price,
+            currency: "USD",
+            metadata: { paymentId: id, userId },
+            checkout: { speedPolicy: "HighSpeed" },
+          }),
+        });
+
+        if (res.ok) {
+          const body = await res.json();
+          checkoutUrl = body?.checkoutLink || body?.url || null;
+          await supabase.from("payments").update({ invoice_id: body?.id ?? null, checkout_url: checkoutUrl }).eq("id", id);
         } else {
-          // For cart purchases, calculate total from cart items
-          const { data: cart, error } = await supabase.from("cart_items").select("price_cents").eq("user_id", userId);
-          if (error) throw new Error("Failed to read cart");
-          priceCents = (cart ?? []).reduce((s: number, r: any) => s + (r.price_cents || 0), 0);
+          const t = await res.text();
+          console.warn("BTCPay invoice creation failed:", res.status, t);
         }
+      } catch (e) {
+        console.error("BTCPay error:", e);
+      }
+    }
 
-        // Create payment row
-        const id = randomUUID();
-        const insert = {
-          id,
-          user_id: userId,
-          plan_id: data.planId ?? null,
-          amount_cents: priceCents,
-          amount_usd: Math.round(priceCents),
-          currency: data.currency,
-          status: "pending",
-          created_at: new Date().toISOString(),
-        } as any;
+    return {
+      id,
+      plan: planRecord,
+      amountCents: priceCents,
+      currency: data.currency,
+      checkoutUrl,
+    };
+  });
 
-        const { error: insertError } = await supabase.from("payments").insert(insert);
-        if (insertError) throw new Error(insertError.message);
+// ----- submit transaction hash (user verifies) -----
+const submitHashInput = z.object({ id: z.string().uuid(), data: z.object({ txHash: z.string().min(6) }) });
+export const submitPaymentHash = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v) => submitHashInput.parse(v))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { id, data: body } = data;
 
-        // If BTCPAY is configured and currency is crypto, try to create an invoice
-        const btcpayUrl = process.env.BTCPAY_URL;
-        const btcpayKey = process.env.BTCPAY_API_KEY;
-        let checkoutUrl: string | null = null;
+    const { data: payment, error } = await supabase.from("payments").select("id, user_id, status").eq("id", id).maybeSingle();
+    if (error || !payment) throw new Error("Payment not found");
+    if (payment.user_id !== userId) throw new Error("Forbidden");
 
-        if (btcpayUrl && btcpayKey && /BTC|USDT|USDC/i.test(data.currency)) {
-          try {
-            const price = (priceCents / 100).toFixed(2);
-            const res = await fetch(`${btcpayUrl.replace(/\/$/, "")}/invoices`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `token ${btcpayKey}`,
-              },
-              body: JSON.stringify({
-                price,
-                currency: "USD",
-                metadata: { paymentId: id, userId },
-                checkout: { speedPolicy: "HighSpeed" },
-              }),
-            });
+    const { error: updateError } = await supabase.from("payments").update({ tx_hash: body.txHash, status: "pending_verification" }).eq("id", id);
+    if (updateError) throw new Error(updateError.message);
 
-            if (res.ok) {
-              const body = await res.json();
-              checkoutUrl = body?.checkoutLink || body?.url || null;
-              // store invoice id & url
-              await supabase.from("payments").update({ invoice_id: body?.id ?? null, checkout_url: checkoutUrl }).eq("id", id);
-            } else {
-              const t = await res.text();
-              console.warn("BTCPay invoice creation failed:", res.status, t);
-            }
-          } catch (e) {
-            console.error("BTCPay error:", e);
-          }
-        }
+    return { ok: true };
+  });
 
-        return {
-          id,
-          plan: planRecord,
-          amountCents: priceCents,
-          currency: data.currency,
-          checkoutUrl,
-        };
-      });
+// ----- admin: sync plans (upsert list of plans) -----
+const syncPlansInput = z.object({ plans: z.array(z.any()).min(1) });
+export const adminSyncPlans = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v) => syncPlansInput.parse(v))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+    if (!isAdmin) throw new Error("Forbidden");
 
-    // ----- submit transaction hash (user verifies) -----
-    const submitHashInput = z.object({ id: z.string().uuid(), data: z.object({ txHash: z.string().min(6) }) });
-    export const submitPaymentHash = createServerFn({ method: "POST" })
-      .middleware([requireSupabaseAuth])
-      .inputValidator((v) => submitHashInput.parse(v))
-      .handler(async ({ context, data }) => {
-        const { supabase, userId } = context;
-        const { id, data: body } = data;
+    const plans = data.plans.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      priceUsd: Math.round((p.priceUsd ?? 0)),
+      durationDays: p.durationDays ?? 30,
+      proxyCount: p.proxyCount ?? 0,
+      bandwidthGb: p.bandwidthGb ?? 0,
+      features: p.features ?? [],
+      isActive: true,
+    }));
 
-        const { data: payment, error } = await supabase.from("payments").select("id, user_id, status").eq("id", id).maybeSingle();
-        if (error || !payment) throw new Error("Payment not found");
-        if (payment.user_id !== userId) throw new Error("Forbidden");
-
-        const { error: updateError } = await supabase.from("payments").update({ tx_hash: body.txHash, status: "pending_verification" }).eq("id", id);
-        if (updateError) throw new Error(updateError.message);
-
-        return { ok: true };
-      });
-
-    // ----- admin: sync plans (upsert list of plans) -----
-    const syncPlansInput = z.object({ plans: z.array(z.any()).min(1) });
-    export const adminSyncPlans = createServerFn({ method: "POST" })
-      .middleware([requireSupabaseAuth])
-      .inputValidator((v) => syncPlansInput.parse(v))
-      .handler(async ({ context, data }) => {
-        const { supabase, userId } = context;
-        const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
-        if (!isAdmin) throw new Error("Forbidden");
-
-        const plans = data.plans.map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          description: p.description,
-          priceUsd: Math.round((p.priceUsd ?? 0)),
-          durationDays: p.durationDays ?? 30,
-          proxyCount: p.proxyCount ?? 0,
-          bandwidthGb: p.bandwidthGb ?? 0,
-          features: p.features ?? [],
-          isActive: true,
-        }));
-
-        const { error } = await supabase.from("plans").upsert(plans, { onConflict: ["id"] });
-        if (error) throw new Error(error.message);
-        return { ok: true, count: plans.length };
-      });
+    const { error } = await supabase.from("plans").upsert(plans, { onConflict: ["id"] });
+    if (error) throw new Error(error.message);
+    return { ok: true, count: plans.length };
   });
 
 // ----- referrals -----
