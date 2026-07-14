@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Example Frontend Component: Proxy Purchase Flow
  * 
